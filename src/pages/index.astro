@@ -1,11 +1,33 @@
 ---
 import Welcome from '../components/Welcome.astro';
 import Layout from '../layouts/Layout.astro';
+import Header from '../components/Header.astro';
+import "../styles/global.css";
 
-// Welcome to Astro! Wondering what to do next? Check out the Astro documentation at https://docs.astro.build
-// Don't want to use any of this? Delete everything in this file, the `assets`, `components`, and `layouts` directories, and start fresh.
+import { supabase } from '../lib/supabase'
+
+const { data: productos, error } = await supabase
+  .from('productos')
+  .select('*')
+
+console.log("PRODUCTOS:", productos)
+console.log("ERROR:", error)
 ---
 
 <Layout>
+	<div class="fixed w-full h-dvh bg-[#F9F7FB]/50 z-[-1]"></div>
+	<Header />
 	<Welcome />
+	<!-- <div>
+		<h1>titulo</h1>
+		<div>
+  {productos?.map((p) => (
+  <div>
+    <h2 class="text-black">{p.titulo}</h2>
+	<img src={p.imagen_url} alt={p.titulo} class="w-xl">
+	<h3>Precio {p.precio}</h3>
+  </div>
+))}
+</div>
+	</div> -->
 </Layout>

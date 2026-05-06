@@ -1,32 +1,59 @@
-<section class=" w-full max-w-6xl m-auto px-4 py-8">
-	<div class="w-full h-80">
-		<img src="/banner.webp" alt="banner" class="hidden md:flex">
-		<img src="/banner-mobil.webp" alt="banner" class="w-full h-full md:hidden">
-	</div>
-	<section class="py-4">
-		<ul class="gridContainer">
-			<li class="w-full bg-[#D9D9D9]/50 px-2 py-4 rounded-2xl">
-				<div class="w-full h-64 overflow-hidden rounded-2xl px-1">
-					<img src="/banner-mobil.webp" alt="name" class="w-full h-full object-cover">
-				</div>
-				<p class="text-[#7B4BA3] pt-2 font-medium text-[1.1rem]">Lo nuevo</p>
-				<h2 class="text-[1.3rem] pr-4 font-sans font-semibold text-wrap text-[#111111]">Uñas press on rojo + kit incluido</h2>
-				<div class="flex justify-end w-full pr-4 py-4">
-					<h3 class="font-medium text-2xl"><span class="pr-2 font-bold">$</span>10.000</h3>
-				</div>
-				<button type="submit" class="w-full h-12 bg-[#B08ACD] hover:bg-[#7B4BA3] cursor-pointer hover:text-white rounded-2xl text-[#F9F7FB] text-xl">Agregar al carrito</button>
-			</li>
-		</ul>
-	</section>
+---
+const { productos } = Astro.props
+---
+
+<section class="w-full max-w-6xl m-auto px-4 py-8">
+  <div class="w-full h-80">
+    <img src="/banner.webp" alt="banner" class="hidden md:flex" />
+    <img
+      src="/banner-mobil.webp"
+      alt="banner"
+      class="w-full h-full md:hidden"
+    />
+  </div>
+  <section class="py-4">
+    <ul class="gridContainer">
+      {
+        productos?.map((p) => (
+          <li class="w-full bg-[#D9D9D9]/50 px-2 py-4 rounded-2xl">
+            <div class="w-full h-64 overflow-hidden rounded-2xl px-1">
+              <img
+                src={p.imagen}
+                alt={p.titulo}
+                class="w-full h-full object-cover"
+              />
+            </div>
+            <p class="text-[#7B4BA3] pt-2 font-medium text-[1.1rem]">
+              Lo nuevo
+            </p>
+            <h2 class="text-[1.3rem] pr-4 font-sans font-semibold text-wrap text-[#111111]">
+              {p.titulo}
+            </h2>
+            <div class="flex justify-end w-full pr-4 py-4">
+              <h3 class="font-medium text-2xl">
+                <span class="pr-2 font-bold">$</span>
+                {p.precio}
+              </h3>
+            </div>
+            <button
+              type="submit"
+              class="w-full h-12 bg-[#B08ACD] hover:bg-[#7B4BA3] cursor-pointer hover:text-white rounded-2xl text-[#F9F7FB] text-xl"
+            >
+              Agregar al carrito
+            </button>
+          </li>
+        ))
+      }
+    </ul>
+  </section>
 </section>
 
-
 <style>
-	.gridContainer{
-		display: grid;
+  .gridContainer {
+    display: grid;
     width: 100%;
     grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
     gap: 1rem;
     overflow-x: auto;
-	}
+  }
 </style>

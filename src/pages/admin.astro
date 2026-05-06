@@ -1,6 +1,10 @@
 ---
 import Layout from '../layouts/Layout.astro';
 import { supabase } from '../lib/supabase'
+
+const { data: productos } = await supabase
+  .from('productos')
+  .select('*')
 import "../styles/global.css"
 ---
 <Layout>
@@ -11,12 +15,12 @@ import "../styles/global.css"
       <input type="text" id="titulo" placeholder="Titulo" required class="w-full h-11 border border-fuchsia-900/50 pl-4 rounded-2xl text-[1.1rem]"/>
       <input type="number" id="precio" placeholder="Precio" required class="w-full h-11 border border-fuchsia-900/50 pl-4 rounded-2xl text-[1.1rem]"/>
       <div>
-      <label class="custum-file-upload" for="file">
+      <label class="custum-file-upload" for="imagen">
 <div class="icon">
 <svg xmlns="http://www.w3.org/2000/svg" fill="" viewBox="0 0 24 24"><g stroke-width="0" id="SVGRepo_bgCarrier"></g><g stroke-linejoin="round" stroke-linecap="round" id="SVGRepo_tracerCarrier"></g><g id="SVGRepo_iconCarrier"> <path fill="" d="M10 1C9.73478 1 9.48043 1.10536 9.29289 1.29289L3.29289 7.29289C3.10536 7.48043 3 7.73478 3 8V20C3 21.6569 4.34315 23 6 23H7C7.55228 23 8 22.5523 8 22C8 21.4477 7.55228 21 7 21H6C5.44772 21 5 20.5523 5 20V9H10C10.5523 9 11 8.55228 11 8V3H18C18.5523 3 19 3.44772 19 4V9C19 9.55228 19.4477 10 20 10C20.5523 10 21 9.55228 21 9V4C21 2.34315 19.6569 1 18 1H10ZM9 7H6.41421L9 4.41421V7ZM14 15.5C14 14.1193 15.1193 13 16.5 13C17.8807 13 19 14.1193 19 15.5V16V17H20C21.1046 17 22 17.8954 22 19C22 20.1046 21.1046 21 20 21H13C11.8954 21 11 20.1046 11 19C11 17.8954 11.8954 17 13 17H14V16V15.5ZM16.5 11C14.142 11 12.2076 12.8136 12.0156 15.122C10.2825 15.5606 9 17.1305 9 19C9 21.2091 10.7909 23 13 23H20C22.2091 23 24 21.2091 24 19C24 17.1305 22.7175 15.5606 20.9844 15.122C20.7924 12.8136 18.858 11 16.5 11Z" clip-rule="evenodd" fill-rule="evenodd"></path> </g></svg>
 </div>
 <div class="text">
-   <span>Click to upload image</span>
+   <span>Subir imagen</span>
    </div>
    <input type="file" id="imagen">
 </label>
@@ -25,7 +29,43 @@ import "../styles/global.css"
       
       <button type="submit" class="w-full h-11 bg-purple-500 rounded-3xl text-white">Guardar</button>
     </form>
+
+
+    <h2 class="text-2xl mt-10">Productos</h2>
+
+<table class="w-full mt-4 border">
+  <thead>
+    <tr class="bg-gray-200">
+      <th>Imagen</th>
+      <th>Título</th>
+      <th>Precio</th>
+      <th>Acciones</th>
+    </tr>
+  </thead>
+
+  <tbody>
+    {productos?.map((p) => (
+      <tr>
+        <td>
+          <img src={p.imagen_url} width="80" />
+        </td>
+        <td>{p.titulo}</td>
+        <td>${p.precio}</td>
+        <td>
+          <button onclick={`editar('${p.id}', '${p.titulo}', '${p.precio}')`}>
+            Editar
+          </button>
+
+          <button onclick={`eliminar('${p.id}')`}>
+            Eliminar
+          </button>
+        </td>
+      </tr>
+    ))}
+  </tbody>
+</table>
 </section>
+
 </Layout>
 
 <style>
@@ -77,6 +117,7 @@ import "../styles/global.css"
   import { supabase } from '../lib/supabase'
 
   const form = document.getElementById('form')
+  let editandoId = null
 
   form.addEventListener('submit', async (e) => {
     e.preventDefault()
@@ -85,39 +126,93 @@ import "../styles/global.css"
     const precio = document.getElementById('precio').value
     const file = document.getElementById('imagen').files[0]
 
-    // nombre único
-    const fileName = Date.now() + "-" + file.name
+    let imageUrl = null
 
-    // subir imagen
-    const { error: uploadError } = await supabase.storage
-      .from('productos')
-      .upload(fileName, file)
+    // SOLO subir imagen si hay archivo
+    if (file) {
+      const fileName = Date.now() + "-" + file.name
 
-    if (uploadError) {
-      alert('Error subiendo imagen')
-      return
+      const { error: uploadError } = await supabase.storage
+        .from('productos')
+        .upload(fileName, file)
+
+      if (uploadError) {
+        alert('Error subiendo imagen')
+        return
+      }
+
+      const { data } = supabase.storage
+        .from('productos')
+        .getPublicUrl(fileName)
+
+      imageUrl = data.publicUrl
     }
 
-    // obtener URL pública
-    const { data } = supabase.storage
-      .from('productos')
-      .getPublicUrl(fileName)
-
-    const imageUrl = data.publicUrl
-
-    // guardar en DB
-    const { error } = await supabase.from('productos').insert([
-      {
+    if (editandoId) {
+      // UPDATE
+      const updateData = {
         titulo,
-        precio,
-        imagen_url: imageUrl
+        precio
       }
-    ])
 
-    if (error) {
-      alert('Error guardando producto')
+      if (imageUrl) {
+        updateData.imagen_url = imageUrl
+      }
+
+      const { error } = await supabase
+        .from('productos')
+        .update(updateData)
+        .eq('id', editandoId)
+
+      if (!error) {
+        alert('Producto actualizado ✅')
+        editandoId = null
+        location.reload()
+      }
+
     } else {
-      alert('Producto guardado ✅')
+      // INSERT
+      const { error } = await supabase.from('productos').insert([
+        {
+          titulo,
+          precio,
+          imagen_url: imageUrl
+        }
+      ])
+
+      if (!error) {
+        alert('Producto guardado ✅')
+        location.reload()
+      }
     }
   })
+
+  // 🔴 FUERA del submit
+  async function eliminar(id) {
+    const confirmar = confirm('¿Eliminar producto?')
+    if (!confirmar) return
+
+    const { error } = await supabase
+      .from('productos')
+      .delete()
+      .eq('id', id)
+
+    if (error) {
+      alert('Error eliminando')
+    } else {
+      location.reload()
+    }
+  }
+
+  // 🔴 FUERA del submit
+  function editar(id, titulo, precio) {
+    document.getElementById('titulo').value = titulo
+    document.getElementById('precio').value = precio
+
+    editandoId = id
+  }
+
+  // 👇 HACERLAS GLOBALES (IMPORTANTE)
+  window.eliminar = eliminar
+  window.editar = editar
 </script>

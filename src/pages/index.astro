@@ -17,17 +17,5 @@ console.log("ERROR:", error)
 <Layout>
 	<div class="fixed w-full h-dvh bg-[#F9F7FB]/50 z-[-1]"></div>
 	<Header />
-	<Welcome />
-	<!-- <div>
-		<h1>titulo</h1>
-		<div>
-  {productos?.map((p) => (
-  <div>
-    <h2 class="text-black">{p.titulo}</h2>
-	<img src={p.imagen_url} alt={p.titulo} class="w-xl">
-	<h3>Precio {p.precio}</h3>
-  </div>
-))}
-</div>
-	</div> -->
+	<Welcome productos={productos}/>
 </Layout>

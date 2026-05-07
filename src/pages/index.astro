@@ -1,21 +1,20 @@
 ---
-import Welcome from '../components/Welcome.astro';
-import Layout from '../layouts/Layout.astro';
-import Header from '../components/Header.astro';
+export const prerender = false;
+import Welcome from "../components/Welcome.astro";
+import Layout from "../layouts/Layout.astro";
+import Header from "../components/Header.astro";
 import "../styles/global.css";
 
-import { supabase } from '../lib/supabase'
+import { supabase } from "../lib/supabase";
 
-const { data: productos, error } = await supabase
-  .from('productos')
-  .select('*')
+const { data: productos, error } = await supabase.from("productos").select("*");
 
-console.log("PRODUCTOS:", productos)
-console.log("ERROR:", error)
+console.log("PRODUCTOS:", productos);
+console.log("ERROR:", error);
 ---
 
 <Layout>
-	<div class="fixed w-full h-dvh bg-[#F9F7FB]/50 z-[-1]"></div>
-	<Header />
-	<Welcome productos={productos}/>
+  <div class="fixed w-full h-dvh bg-[#F9F7FB]/50 z-[-1]"></div>
+  <Header />
+  <Welcome productos={productos} />
 </Layout>

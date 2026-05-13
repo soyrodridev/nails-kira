@@ -4,6 +4,7 @@ export const prerender = false;
 import Layout from "../../layouts/Layout.astro";
 import ShopProvider from "../../components/ShopProvider";
 import ProductDetail from "../../components/ProductDetail";
+import ProductDetailWrapper from "../../components/ProductDetailWrapper";
 
 import { supabase } from "../../lib/supabase";
 import "../../styles/global.css";
@@ -19,8 +20,8 @@ const { data: producto } = await supabase
 
 <Layout>
 
-  <ShopProvider client:load>
-    <ProductDetail producto={producto} />
-  </ShopProvider>
+  <Layout>
+  <ProductDetailWrapper client:load producto={producto} />
+</Layout>
 
 </Layout>

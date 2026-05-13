@@ -1,6 +1,6 @@
 ---
 import Layout from "../layouts/Layout.astro";
-import ShopApp from "../components/ShopApp";
+import App from "../components/App";
 import "../styles/global.css"
 
 import { supabase } from "../lib/supabase";
@@ -8,7 +8,6 @@ import { supabase } from "../lib/supabase";
 const { data: productos } =
   await supabase.from("productos").select("*");
 ---
-
-<ShopApp client:load>
-  <Store productos={productos || []} />
-</ShopApp>
+<Layout>
+<App client:load productos={productos || []} />
+</Layout>

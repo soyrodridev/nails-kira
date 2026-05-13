@@ -1,13 +1,10 @@
 ---
+// [id].astro
 export const prerender = false;
-
 import Layout from "../../layouts/Layout.astro";
-import ShopProvider from "../../components/ShopProvider";
-import ProductDetail from "../../components/ProductDetail";
-import ProductDetailWrapper from "../../components/ProductDetailWrapper";
-
+import App from "../../components/App";
 import { supabase } from "../../lib/supabase";
-import "../../styles/global.css";
+import "../../styles/global.css"
 
 const { id } = Astro.params;
 
@@ -19,9 +16,6 @@ const { data: producto } = await supabase
 ---
 
 <Layout>
-
-  <Layout>
-  <ProductDetailWrapper client:load producto={producto} />
-</Layout>
-
+  
+  <App client:load productoDetalle={producto} />
 </Layout>

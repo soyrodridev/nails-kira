@@ -1,14 +1,17 @@
-import { useState } from "react";
+import { useState, useContext } from "react";
 import Cart from "./Card";
+import { ShopContext } from "../context/ShopContext";
 
-export default function Header({
-  search,
-  setSearch,
-  cartItems,
-  removeFromCart,
-  increaseQuantity,
-  decreaseQuantity,
-}) {
+export default function Header() {
+
+  const {
+    search,
+    setSearch,
+    cartItems,
+    removeFromCart,
+    increaseQuantity,
+    decreaseQuantity,
+  } = useContext(ShopContext);
 
   const [menuOpen, setMenuOpen] = useState(false);
   const [cartOpen, setCartOpen] = useState(false);
@@ -20,11 +23,13 @@ export default function Header({
         <nav className="max-w-6xl m-auto flex justify-between items-center h-28 px-4">
 
           {/* Logo */}
-          <img
+          <a href="/">
+            <img
             src="/logo-nail.svg"
             alt="Logo de Nails Kira"
             className="w-32 md:w-36"
           />
+          </a>
 
           {/* Menu */}
           <nav
@@ -99,7 +104,12 @@ export default function Header({
 
               {/* Contador */}
               <span className="absolute -top-1 -right-1 bg-white text-pink-600 text-xs font-bold w-5 h-5 flex items-center justify-center rounded-full">
-                {cartItems.length}
+                {
+  cartItems.reduce(
+    (total, item) => total + item.cantidad,
+    0
+  )
+}
               </span>
 
             </button>
@@ -132,14 +142,14 @@ export default function Header({
       </header>
 
       {/* Carrito */}
-        <Cart
-    open={cartOpen}
-    onClose={() => setCartOpen(false)}
-    cartItems={cartItems}
-    removeFromCart={removeFromCart}
-    increaseQuantity={increaseQuantity}
-    decreaseQuantity={decreaseQuantity}
-  />
+      <Cart
+        open={cartOpen}
+        onClose={() => setCartOpen(false)}
+        cartItems={cartItems}
+        removeFromCart={removeFromCart}
+        increaseQuantity={increaseQuantity}
+        decreaseQuantity={decreaseQuantity}
+      />
     </>
   );
 }
@@ -165,7 +175,6 @@ function SearchInput({ search, setSearch }) {
         "
       />
 
-      {/* Lupa */}
       <svg
         xmlns="http://www.w3.org/2000/svg"
         className="w-5 h-5 text-pink-400 absolute left-4 top-1/2 -translate-y-1/2"

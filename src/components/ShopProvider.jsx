@@ -10,17 +10,32 @@ export default function ShopProvider({ children }) {
   const [toastOpen, setToastOpen] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
 
+  // ⚠️ FIX SSR SAFETY (IMPORTANTE EN ASTRO / VERCEL)
   useEffect(() => {
+    if (typeof window === "undefined") return;
+
     const saved = localStorage.getItem("cart");
-    if (saved) setCartItems(JSON.parse(saved));
+    if (saved) {
+      try {
+        setCartItems(JSON.parse(saved));
+      } catch (e) {
+        console.error("Error parsing cart:", e);
+      }
+    }
   }, []);
 
   useEffect(() => {
+    if (typeof window === "undefined") return;
     localStorage.setItem("cart", JSON.stringify(cartItems));
   }, [cartItems]);
 
-  // ✅ ADD TO CART
+  // =========================
+  // ✅ ADD TO CART (NO TOCAR)
+  // =========================
   const addToCart = (producto) => {
+    console.log("🛒 addToCart EJECUTADO");
+    console.log("PRODUCTO RECIBIDO:", producto);
+
     setCartItems((prev) => {
       const existe = prev.find((i) => i.id === producto.id);
 
@@ -37,10 +52,13 @@ export default function ShopProvider({ children }) {
 
     setToastMessage(`${producto.titulo} agregado al carrito`);
     setToastOpen(true);
+
     setTimeout(() => setToastOpen(false), 2500);
   };
 
+  // =========================
   // ✅ INCREASE
+  // =========================
   const increaseQuantity = (id) => {
     setCartItems((prev) =>
       prev.map((item) =>
@@ -51,7 +69,9 @@ export default function ShopProvider({ children }) {
     );
   };
 
+  // =========================
   // ✅ DECREASE
+  // =========================
   const decreaseQuantity = (id) => {
     setCartItems((prev) =>
       prev
@@ -64,32 +84,30 @@ export default function ShopProvider({ children }) {
     );
   };
 
+  // =========================
+  // ✅ REMOVE
+  // =========================
   const removeFromCart = (id) => {
     setCartItems((prev) =>
       prev.filter((item) => item.id !== id)
     );
   };
 
-  return (
-    <ShopContext.Provider
-      value={{
-        search,
+  // =========================
+  // ✅ CONTEXT VALUE (IMPORTANTE)
+  // =========================
+  const value = {
+    search,
     setSearch,
     cartItems,
     addToCart,
     increaseQuantity,
     decreaseQuantity,
-  removeFromCart
-      }}
-    >
-      <Header
-        search={search}
-        setSearch={setSearch}
-        cartItems={cartItems}
-        removeFromCart={removeFromCart}
-        increaseQuantity={increaseQuantity}
-        decreaseQuantity={decreaseQuantity}
-      />
+    removeFromCart,
+  };
+
+  return (
+    <ShopContext.Provider value={value}>
 
       {children}
 
@@ -97,6 +115,7 @@ export default function ShopProvider({ children }) {
         open={toastOpen}
         message={toastMessage}
       />
+
     </ShopContext.Provider>
   );
 }

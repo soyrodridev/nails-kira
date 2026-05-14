@@ -197,21 +197,25 @@ export default function Cart({
             </div>
 
             {/* Botón */}
-            <button
-              className="
-                w-full
-                bg-pink-500
-                hover:bg-pink-600
-                text-white
-                py-3
-                rounded-xl
-                font-medium
-                transition
-                cursor-pointer
-              "
-            >
-              Finalizar compra
-            </button>
+            <a
+  href="/checkout"
+  onClick={onClose}
+  className="
+    block
+    w-full
+    text-center
+    bg-pink-500
+    hover:bg-pink-600
+    text-white
+    py-3
+    rounded-xl
+    font-medium
+    transition
+    cursor-pointer
+  "
+>
+  Finalizar compra
+</a>
 
           </div>
 

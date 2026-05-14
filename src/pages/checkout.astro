@@ -1,0 +1,14 @@
+---
+// src/pages/checkout.astro
+import Layout from "../layouts/Layout.astro";
+import App from "../components/App";
+import "../styles/global.css";
+---
+
+<Layout title="Finalizar Compra">
+  {/* 
+      IMPORTANTE: No debe haber NADA dentro de <App></App>.
+      Asegúrate de que el nombre de la prop sea isCheckout.
+  */}
+  <App client:load isCheckout={true} productos={[]} />
+</Layout>

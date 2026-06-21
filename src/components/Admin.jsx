@@ -28,9 +28,7 @@ export default function Admin() {
     fetchProductos();
   }, []);
 
-  // =========================
-  // IMAGE PREVIEW
-  // =========================
+  
   const handleImage = (file) => {
     setImagen(file);
     setPreview(URL.createObjectURL(file));

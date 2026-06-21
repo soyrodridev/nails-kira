@@ -1,6 +1,6 @@
 import { useState, useCallback } from "react";
 import Cropper from "react-easy-crop";
-import getCroppedImg from "./cropImage";
+import getCroppedImg from "../utils/cropImage";
 import imageCompression from "browser-image-compression";
 
 export default function ImageCropper({ onClose, onSave }) {

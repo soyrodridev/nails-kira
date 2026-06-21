@@ -3,7 +3,7 @@
 export const prerender = false;
 import Layout from "../../layouts/Layout.astro";
 import App from "../../components/App";
-import { supabase } from "../../lib/supabase";
+import { supabaseClient as supabase } from "../../lib/supabase";
 import "../../styles/global.css"
 
 const { id } = Astro.params;

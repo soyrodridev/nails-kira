@@ -3,7 +3,6 @@ import Cart from "./Card";
 import { ShopContext } from "../context/ShopContext";
 
 export default function Header() {
-
   const {
     search,
     setSearch,
@@ -19,16 +18,14 @@ export default function Header() {
   return (
     <>
       <header className="w-full bg-pink-50/80 backdrop-blur-md border-b border-pink-100 sticky top-0 z-50">
-
         <nav className="max-w-6xl m-auto flex justify-between items-center h-28 px-4">
-
           {/* Logo */}
           <a href="/">
             <img
-            src="/logo-nail.svg"
-            alt="Logo de Nails Kira"
-            className="w-32 md:w-36"
-          />
+              src="/logo-nail.svg"
+              alt="Logo de Nails Kira"
+              className="w-32 md:w-36"
+            />
           </a>
 
           {/* Menu */}
@@ -43,9 +40,7 @@ export default function Header() {
               ${menuOpen ? "block" : "hidden md:block"}
             `}
           >
-
             <ul className="flex flex-col md:flex-row md:space-x-4">
-
               <li className="py-4 pl-4 md:p-0">
                 <a href="" className="text-[1.1rem]">
                   Productos
@@ -57,28 +52,19 @@ export default function Header() {
                   Acerca de
                 </a>
               </li>
-
             </ul>
 
             {/* Buscador Mobile */}
             <div className="p-4 md:hidden">
-              <SearchInput
-                search={search}
-                setSearch={setSearch}
-              />
+              <SearchInput search={search} setSearch={setSearch} />
             </div>
-
           </nav>
 
           {/* Derecha */}
           <div className="flex space-x-2 items-center">
-
             {/* Buscador Desktop */}
             <div className="hidden md:block">
-              <SearchInput
-                search={search}
-                setSearch={setSearch}
-              />
+              <SearchInput search={search} setSearch={setSearch} />
             </div>
 
             {/* Carrito */}
@@ -86,7 +72,6 @@ export default function Header() {
               onClick={() => setCartOpen(true)}
               className="relative bg-pink-500 hover:bg-pink-600 transition p-3 rounded-full shadow-md"
             >
-
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 className="w-6 h-6 text-white"
@@ -104,14 +89,8 @@ export default function Header() {
 
               {/* Contador */}
               <span className="absolute -top-1 -right-1 bg-white text-pink-600 text-xs font-bold w-5 h-5 flex items-center justify-center rounded-full">
-                {
-  cartItems.reduce(
-    (total, item) => total + item.cantidad,
-    0
-  )
-}
+                {cartItems.reduce((total, item) => total + item.cantidad, 0)}
               </span>
-
             </button>
 
             {/* Menu Mobile */}
@@ -119,7 +98,6 @@ export default function Header() {
               onClick={() => setMenuOpen(!menuOpen)}
               className="bg-white border border-pink-200 p-3 rounded-full shadow-md hover:bg-pink-100 transition md:hidden"
             >
-
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 className="w-6 h-6 text-pink-600"
@@ -134,9 +112,7 @@ export default function Header() {
                   d="M4 6h16M4 12h16M4 18h16"
                 />
               </svg>
-
             </button>
-
           </div>
         </nav>
       </header>
@@ -157,7 +133,6 @@ export default function Header() {
 function SearchInput({ search, setSearch }) {
   return (
     <div className="relative">
-
       <input
         type="text"
         placeholder="Buscar productos..."
@@ -189,7 +164,6 @@ function SearchInput({ search, setSearch }) {
           d="M21 21l-4.35-4.35m1.85-5.15a7 7 0 11-14 0 7 7 0 0114 0z"
         />
       </svg>
-
     </div>
   );
 }

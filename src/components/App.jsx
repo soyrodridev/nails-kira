@@ -4,11 +4,7 @@ import Store from "./Store";
 import ProductDetail from "./ProductDetail";
 import CheckoutPage from "./CheckoutPage";
 
-/**
- * App Component
- * Actúa como el orquestador principal de la isla de interactividad.
- * Decidimos qué vista mostrar basándonos en las props enviadas desde Astro.
- */
+
 export default function App({ productos, productoDetalle, isCheckout }) {
   return (
     <ShopProvider>

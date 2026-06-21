@@ -1,6 +1,6 @@
 import { useContext, useEffect, useState } from "react";
 import { ShopContext } from "../context/ShopContext";
-import { supabase } from "../lib/supabase";
+import { supabaseClient as supabase } from "../lib/supabase";
 
 export default function Checkout() {
   const mpFee = 0.15;

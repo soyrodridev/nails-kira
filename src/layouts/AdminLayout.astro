@@ -1,0 +1,10 @@
+---
+import Layout from "./Layout.astro";
+import AdminShell from "../components/admin/AdminShell";
+---
+
+<Layout>
+  <AdminShell client:load>
+    <slot />
+  </AdminShell>
+</Layout>

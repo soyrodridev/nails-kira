@@ -1,10 +1,5 @@
 ---
 export const prerender = false;
-import Layout from "../../layouts/Layout.astro";
-import Admin from "../../components/Admin"
 return Astro.redirect("/admin/dashboard");
 ---
 
-<Layout>
-  <Admin client:load/>
-</Layout>

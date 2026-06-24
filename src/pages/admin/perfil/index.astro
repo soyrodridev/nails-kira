@@ -1,0 +1,21 @@
+---
+export const prerender = false;
+import AdminLayout from "../../../layouts/AdminLayout.astro";
+import EditProfile from "../../../components/admin/EditProfile.jsx";
+import { supabaseClient as supabase } from "../../../lib/supabase";
+
+const accessToken = Astro.cookies.get("sb-access-token");
+const refreshToken = Astro.cookies.get("sb-refresh-token");
+
+const { data: sessionData } = await supabase.auth.setSession({
+  access_token: accessToken?.value || "",
+  refresh_token: refreshToken?.value || "",
+});
+
+const userId = sessionData?.user?.id || null;
+const currentUsername = sessionData?.user?.user_metadata?.username || "Administrador";
+---
+
+<AdminLayout title="Mi Perfil">
+  <EditProfile client:load userId={userId} currentUsername={currentUsername} />
+</AdminLayout>

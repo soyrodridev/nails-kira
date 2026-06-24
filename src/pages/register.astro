@@ -1,0 +1,14 @@
+---
+export const prerender = false;
+import Layout from "../layouts/Layout.astro";
+import RegisterContainer from "../components/Register.jsx";
+
+const accessToken = Astro.cookies.get("sb-access-token");
+if (accessToken) {
+  return Astro.redirect("/admin/dashboard");
+}
+---
+
+<Layout title="Crear Cuenta">
+  <RegisterContainer client:load />
+</Layout>

@@ -1,0 +1,15 @@
+---
+export const prerender = false;
+import Layout from "../layouts/Layout.astro";
+import LoginContainer from "../components/login";
+
+// Validación rápida en el servidor: si ya tiene la sesión guardada en cookies, evitamos que vea el login
+const accessToken = Astro.cookies.get("sb-access-token");
+if (accessToken) {
+  return Astro.redirect("/admin/dashboard");
+}
+---
+
+<Layout title="Iniciar Sesión">
+  <LoginContainer client:load />
+</Layout>

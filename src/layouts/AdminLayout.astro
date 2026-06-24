@@ -1,10 +1,64 @@
 ---
+export const prerender = false;
+
 import Layout from "./Layout.astro";
 import AdminShell from "../components/admin/AdminShell";
+import { supabaseClient as supabase } from "../lib/supabase";
+
+const accessToken = Astro.cookies.get("sb-access-token");
+const refreshToken = Astro.cookies.get("sb-refresh-token");
+
+if (!accessToken || !refreshToken) {
+  return Astro.redirect("/login");
+}
+
+const { data: sessionData } = await supabase.auth.setSession({
+  access_token: accessToken.value,
+  refresh_token: refreshToken.value,
+});
+
+const user = sessionData?.session?.user || sessionData?.user;
+
+let username = "Administrador";
+let role = "kiosco";
+let tieneNotificaciones = false;
+
+if (user) {
+  const { data: perfil } = await supabase
+    .from("perfiles")
+    .select("username, role")
+    .eq("id", user.id)
+    .single();
+
+  if (perfil) {
+    username = perfil.username || "Usuario";
+    role = perfil.role || "kiosco";
+  }
+
+  if (role === "superadmin") {
+    const { count } = await supabase
+      .from("notificaciones")
+      .select("*", { count: "exact", head: true })
+      .eq("leido", false);
+
+    tieneNotificaciones = (count || 0) > 0;
+  }
+}
+
+interface Props {
+  title?: string;
+}
+
+const { title } = Astro.props;
 ---
 
-<Layout>
-  <AdminShell client:load>
+<Layout title={title}>
+  <AdminShell
+    client:load
+    username={username}
+    role={role}
+    tieneNotificaciones={tieneNotificaciones}
+  >
     <slot />
   </AdminShell>
 </Layout>

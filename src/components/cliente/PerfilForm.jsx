@@ -51,6 +51,15 @@ const { error } = await supabase
             className="w-full px-4 py-3 rounded-2xl border border-gray-100 bg-gray-50 text-gray-400 cursor-not-allowed"
           />
         </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Numero de telefono</label>
+          <input 
+            type="text" 
+            disabled 
+            value={user.telefono} 
+            className="w-full px-4 py-3 rounded-2xl border border-gray-100 bg-gray-50 text-gray-400 cursor-not-allowed"
+          />
+        </div>
 
         <button 
           type="submit"

@@ -10,6 +10,9 @@ export async function GET({ cookies }) {
   if (!accessToken || !refreshToken) {
     return new Response(JSON.stringify({ user: null }), {
       status: 401,
+      headers: {
+        "Content-Type": "application/json",
+      },
     });
   }
 
@@ -21,12 +24,33 @@ export async function GET({ cookies }) {
   if (error || !data.session) {
     return new Response(JSON.stringify({ user: null }), {
       status: 401,
+      headers: {
+        "Content-Type": "application/json",
+      },
     });
+  }
+
+  const authUser = data.session.user;
+
+  // Buscar datos extra en la tabla perfiles
+  const { data: perfil, error: perfilError } = await supabase
+    .from("perfiles")
+    .select("username, role")
+    .eq("id", authUser.id)
+    .single();
+
+  if (perfilError) {
+    console.error("Error obteniendo perfil:", perfilError);
   }
 
   return new Response(
     JSON.stringify({
-      user: data.session.user,
+      user: {
+        id: authUser.id,
+        email: authUser.email,
+        username: perfil?.username || authUser.email.split("@")[0],
+        role: perfil?.role || "cliente",
+      },
     }),
     {
       status: 200,

@@ -172,7 +172,6 @@ export default function Cart({
 
         </div>
 
-        {/* Footer */}
         {cartItems.length > 0 && (
 
           <div className="

@@ -1,25 +1,29 @@
 ---
 import PerfilForm from "../../../components/cliente/PerfilForm";
 import ClientLayout from "../../../layouts/ClientLayout.astro";
+import { supabaseClient as supabase } from "../../../lib/supabase";
 
-const user = Astro.locals.user;
+const userAuth = Astro.locals.user;
 
-if (!user) {
+if (!userAuth) {
   return Astro.redirect("/login");
 }
 
-// Obtener el perfil completo desde la base de datos
-import { supabaseClient as supabase } from "../../../lib/supabase";
-
-const { data: perfil } = await supabase
+// Obtenemos los datos desde la tabla 'perfiles'
+const { data: perfil, error } = await supabase
   .from("perfiles")
   .select("*")
-  .eq("id", user.id)
+  .eq("id", userAuth.id)
   .single();
 
-const nombre = perfil?.username || "";
+const userData = {
+  ...userAuth,
+  nombre: perfil?.username || "",
+  telefono: perfil?.telefono || "",
+  email: userAuth.email
+};
 ---
 
-<ClientLayout username={nombre}>
-  <PerfilForm user={{ ...user, nombre }} client:load />
+<ClientLayout username={userData.nombre}>
+  <PerfilForm user={userData} client:load />
 </ClientLayout>

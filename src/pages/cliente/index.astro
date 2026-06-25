@@ -1,0 +1,11 @@
+---
+// src/pages/cliente/pedidos.astro
+import ClientLayout from '../../layouts/ClientLayout.astro';
+import PedidosList from '../../components/cliente/PedidosList'; // Tu componente React
+---
+
+<ClientLayout title="Mis Pedidos">
+  <main>
+    <PedidosList client:load /> 
+  </main>
+</ClientLayout>

@@ -5,9 +5,5 @@ import App from "../components/App";
 ---
 
 <Layout title="Finalizar Compra">
-  {/* 
-      IMPORTANTE: No debe haber NADA dentro de <App></App>.
-      Asegúrate de que el nombre de la prop sea isCheckout.
-  */}
   <App client:load isCheckout={true} productos={[]} />
 </Layout>

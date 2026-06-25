@@ -16,7 +16,7 @@ function Welcome() {
             Consigue el diseño perfecto con nuestras <strong>Press-on Nails</strong>. 
             Reutilizables, resistentes y listas para usar. ¡Luce uñas de salón sin salir de casa!
           </p>
-          <button className="px-8 py-3 bg-lime-300 hover:bg-lime-400 text-gray-900 font-bold rounded-full transition-all shadow-md transform hover:scale-105">
+          <button className="px-8 cursor-pointer py-3 bg-lime-300 hover:bg-lime-400 text-gray-900 font-bold rounded-full transition-all shadow-md transform hover:scale-105">
             Comprar ahora
           </button>
         </div>

@@ -2,106 +2,66 @@ import React from "react";
 
 function ProductsGrid({ productos, addToCart }) {
   return (
-    <section className="py-4">
-      <ul className="gridContainer">
-
+    // Aumenté el padding horizontal y vertical para que respire mejor
+    <section className="py-12 px-6 max-w-7xl mx-auto">
+      {/* 
+        Ajuste clave:
+        - móvil: 1 columna (para que sean grandes)
+        - tablet (md): 2 columnas
+        - desktop (lg): 3 columnas
+        - gap-8: más espacio entre tarjetas
+      */}
+      <ul className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         {productos?.map((p) => (
-          <li key={p.id}>
+          <li key={p.id} className="group">
+            <a href={`/producto/${p.id}`} className="block">
+              {/* Contenedor principal con más altura */}
+              <div className="relative rounded-3xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-500 bg-white">
+                
+                {/* Imagen más alta (aspect-square o 4/5 para mayor presencia) */}
+                <div className="aspect-[4/5] overflow-hidden">
+                  <img
+                    src={p.imagen_url}
+                    alt={p.titulo}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                  />
+                </div>
 
-            {/* Link Card */}
-            <a href={`/producto/${p.id}`}>
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/10 to-transparent opacity-90" />
 
-              <div className="group relative rounded-2xl overflow-hidden shadow-md hover:shadow-xl transition duration-300">
-
-                <img
-                  src={p.imagen_url}
-                  alt={p.titulo}
-                  className="w-full h-100 object-cover group-hover:scale-110 transition duration-500"
-                />
-
-                <div className="absolute inset-0 bg-linear-to-t from-black/70 via-black/0 to-transparent" />
-
-                <div className="absolute bottom-0 p-4 w-full text-white">
-
-                  <h3 className="text-lg font-semibold tracking-wide">
+                {/* Contenido con mayor tamaño de letra y padding */}
+                <div className="absolute bottom-0 p-8 w-full text-white">
+                  <h3 className="text-2xl font-bold tracking-tight leading-tight mb-1">
                     {p.titulo}
                   </h3>
-
-                  <p className="text-sm opacity-80">
-                    Diseño premium y duradero
+                  <p className="text-sm text-pink-200 font-medium uppercase tracking-widest mb-6">
+                    Almendra larga
                   </p>
 
-                  <div className="flex items-center justify-between mt-3">
-
-                    <h4 className="text-lg font-bold">
-                      <span className="font-bold">$</span>{" "}
-                      {Number(p.precio).toLocaleString("es-AR")}
+                  <div className="flex items-center justify-between">
+                    <h4 className="text-2xl font-extrabold">
+                      ${Number(p.precio).toLocaleString("es-AR")}
                     </h4>
 
-                    {/* Botón */}
+                    {/* Botón más grande y fácil de tocar */}
                     <button
                       onClick={(e) => {
                         e.preventDefault();
                         addToCart(p);
                       }}
-                      className="
-                        flex items-center gap-2
-
-                        bg-white/20
-                        backdrop-blur-md
-                        border border-white/30
-
-                        text-white
-                        text-sm
-                        font-medium
-
-                        px-4 py-2
-                        rounded-full
-
-                        shadow-lg
-                        opacity-100
-                        md:opacity-0
-                        md:translate-y-3
-
-                        md:group-hover:opacity-100
-                        md:group-hover:translate-y-0
-
-                        hover:bg-pink-500
-                        hover:border-pink-400
-                        hover:scale-105
-
-                        active:scale-95
-
-                        transition-all duration-300
-                        cursor-pointer
-                      "
+                      className="flex items-center gap-2  cursor-pointer bg-lime-300 hover:bg-lime-400 text-gray-900 text-sm font-bold px-6 py-3 rounded-full transition-all duration-300 hover:scale-105 active:scale-95 shadow-xl"
                     >
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        className="w-4 h-4"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth="2"
-                          d="M3 3h2l.4 2M7 13h10l4-8H5.4"
-                        />
+                      <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
                       </svg>
-
                       Agregar
                     </button>
-
                   </div>
                 </div>
               </div>
-
             </a>
           </li>
         ))}
-
       </ul>
     </section>
   );

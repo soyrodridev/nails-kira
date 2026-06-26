@@ -6,7 +6,6 @@ import ProductsGrid from "./ProductsGrid";
 import Container from "./Container";
 
 export default function Store({ productos = [] }) {
-
   const { search, addToCart } = useContext(ShopContext);
 
   const productosFiltrados = useMemo(() => {
@@ -17,13 +16,24 @@ export default function Store({ productos = [] }) {
 
   return (
     <>
-      <Welcome />
+      {search === "" && <Welcome />}
 
       <Container>
-        <ProductsGrid
-          productos={productosFiltrados}
-          addToCart={addToCart}
-        />
+        {productosFiltrados.length > 0 ? (
+          <ProductsGrid
+            productos={productosFiltrados}
+            addToCart={addToCart}
+          />
+        ) : (
+          <div className="flex flex-col items-center justify-center py-20 text-center">
+            <h2 className="text-xl font-medium text-gray-600">
+              No se encontraron productos para "{search}"
+            </h2>
+            <p className="text-gray-400 mt-2">
+              Intenta con otros términos de búsqueda.
+            </p>
+          </div>
+        )}
       </Container>
     </>
   );

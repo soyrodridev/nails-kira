@@ -15,7 +15,6 @@ export async function GET({ cookies }) {
       },
     });
   }
-
   const { data, error } = await supabase.auth.setSession({
     access_token: accessToken.value,
     refresh_token: refreshToken.value,

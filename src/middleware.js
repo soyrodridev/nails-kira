@@ -44,11 +44,7 @@ export const onRequest = async ({ cookies, redirect, url, locals }, next) => {
       // Usamos el valor de la columna 'role'
       const role = perfil?.role || "cliente";
 
-      console.log(
-        `Middleware: Usuario ${user.id} - Rol detectado: ${role} - Accediendo a: ${url.pathname}`,
-      );
 
-      // Guardamos en locals para usarlo en otras partes de la app
       locals.user = user;
       locals.role = role;
 

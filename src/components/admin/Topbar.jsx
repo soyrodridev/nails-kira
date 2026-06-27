@@ -31,10 +31,7 @@ export default function Topbar({
 useEffect(() => {
     cargarNotificaciones();
 
-    console.log("Intentando conectar a Realtime...");
 
-    // Usamos '*' para capturar cualquier evento (INSERT, UPDATE, DELETE)
-    // Esto nos ayudará a saber si el problema es el tipo de evento o el RLS
     const canal = supabase
       .channel("notificaciones_canal")
       .on(
@@ -57,7 +54,7 @@ useEffect(() => {
         }
       )
       .subscribe((status) => {
-        console.log("Estado de la suscripción:", status);
+        console.log(status);
       });
 
     return () => {

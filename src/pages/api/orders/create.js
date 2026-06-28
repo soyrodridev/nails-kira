@@ -1,53 +1,51 @@
 export const prerender = false;
-
-import { supabaseClient as supabase } from "../../../lib/supabase";
+import { supabaseAdmin } from "../../../lib/supabaseAdmin"; // Usa el cliente con SERVICE_ROLE
 
 export async function POST({ request, cookies }) {
   const accessToken = cookies.get("sb-access-token");
   const refreshToken = cookies.get("sb-refresh-token");
 
-  if (!accessToken || !refreshToken) {
-    return new Response(
-      JSON.stringify({ error: "No autenticado" }),
-      { status: 401 }
-    );
+  // 1. Autenticación simplificada
+  if (!accessToken || !refreshToken) return new Response(JSON.stringify({ error: "No autenticado" }), { status: 401 });
+
+  const { data: sessionData } = await supabaseAdmin.auth.setSession({
+    access_token: accessToken.value,
+    refresh_token: refreshToken.value,
+  });
+
+  if (!sessionData.session) return new Response(JSON.stringify({ error: "Sesión inválida" }), { status: 401 });
+
+  const body = await request.json(); // Esperamos { order_code, payment_method, items: [{id, talle, cantidad}] }
+
+  // 2. Seguridad: Calcular total en el servidor consultando los precios reales
+  let totalCalculado = 0;
+  const itemsConPrecios = [];
+
+  for (const item of body.items) {
+    const { data: producto, error: pError } = await supabaseAdmin
+      .from("productos") // Asegúrate que tu tabla se llame así
+      .select("precio, titulo")
+      .eq("id", item.id)
+      .single();
+
+    if (pError || !producto) return new Response(JSON.stringify({ error: "Producto no encontrado" }), { status: 400 });
+
+    totalCalculado += producto.precio * item.cantidad;
+    itemsConPrecios.push({ ...item, titulo: producto.titulo, precio: producto.precio });
   }
 
-  const { data: sessionData, error: sessionError } =
-    await supabase.auth.setSession({
-      access_token: accessToken.value,
-      refresh_token: refreshToken.value,
-    });
-
-  if (sessionError || !sessionData.session) {
-    return new Response(
-      JSON.stringify({ error: "Sesión inválida" }),
-      { status: 401 }
-    );
-  }
-
-  const body = await request.json();
-
-  const orderData = {
-    ...body,
+  // 3. Insertar orden segura
+  const { error } = await supabaseAdmin.from("orders").insert([{
+    order_code: body.order_code,
+    total: totalCalculado,
+    payment_method: body.payment_method,
+    items: itemsConPrecios,
     user_id: sessionData.session.user.id,
-  };
+    status: "pending",
+    created_at: new Date().toISOString()
+  }]);
 
-  const { error } = await supabase
-    .from("orders")
-    .insert([orderData]);
+  if (error) return new Response(JSON.stringify({ error: error.message }), { status: 400 });
 
-  if (error) {
-    console.error(error);
-
-    return new Response(
-      JSON.stringify({ error: error.message }),
-      { status: 400 }
-    );
-  }
-
-  return new Response(
-    JSON.stringify({ success: true }),
-    { status: 200 }
-  );
+  return new Response(JSON.stringify({ success: true }), { status: 200 });
 }

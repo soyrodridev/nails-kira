@@ -3,10 +3,14 @@ import Layout from "../layouts/Layout.astro";
 import App from "../components/App";
 
 import { supabaseClient } from "../lib/supabase";
+import Footer from "../components/Footer.astro";
 
 const { data: productos } =
   await supabaseClient.from("productos").select("*");
 ---
 <Layout>
 <App client:load productos={productos || []} />
+
+
+<Footer/>
 </Layout>

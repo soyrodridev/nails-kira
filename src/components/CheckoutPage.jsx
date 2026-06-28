@@ -89,8 +89,8 @@ export default function Checkout() {
     message += `────────────────────\n\n`;
     message += `📦 *PRODUCTOS*\n`;
     cartItems.forEach((item) => {
-      message += `• ${item.titulo} x${item.cantidad}\n  └ $${formatPrice(
-        item.precio * item.cantidad,
+      message += `• ${item.titulo} x${item.cantidad}\n *Talle:* ${item.talleSeleccionado}\n   └ $${formatPrice(
+        item.precio * item.cantidad, 
       )}\n`;
     });
     message += `\n────────────────────\n\n`;
@@ -134,21 +134,22 @@ export default function Checkout() {
   };
 
   const saveOrderToDB = async () => {
-    // Usamos el estado 'user' verificado al inicio
     if (!user) {
       setShowLoginModal(true);
       setLoading(false);
       return false;
     }
 
+    // MEJORA DE SEGURIDAD: Solo enviamos datos básicos.
+    // El precio se calcula en el servidor para evitar manipulación.
     const orderData = {
       order_code: orderId,
-      total: baseTotal,
       payment_method: paymentMethod,
-      items: cartItems,
-      status: "pending",
-      created_at: new Date().toISOString(),
-      user_id: user.id,
+      items: cartItems.map((item) => ({
+        id: item.id,
+        talle: item.talleSeleccionado,
+        cantidad: item.cantidad,
+      })),
     };
 
     const res = await fetch("/api/orders/create", {
@@ -162,16 +163,10 @@ export default function Checkout() {
     const data = await res.json();
 
     if (!res.ok) {
-      alert("Error guardando el pedido: " + data.error);
+      alert("Error guardando el pedido: " + (data.error || "Error desconocido"));
       return false;
     }
 
-    return true;
-    if (error) {
-      console.error("❌ SUPABASE ERROR:", error);
-      alert("Error guardando el pedido: " + error.message);
-      return false;
-    }
     return true;
   };
 
@@ -202,6 +197,9 @@ export default function Checkout() {
                   <p className="text-sm text-gray-500">
                     Cantidad: {item.cantidad}
                   </p>
+                  <p className="text-xs text-gray-400 mt-0.5">
+      Talle: <span className="font-semibold text-pink-500">{item.talleSeleccionado}</span>
+    </p>
                 </div>
                 <p className="font-semibold text-pink-600">
                   ${formatPrice(item.precio * item.cantidad)}
@@ -216,14 +214,14 @@ export default function Checkout() {
           <div className="space-y-4">
             <button
               onClick={() => setPaymentMethod("mercadopago")}
-              className={`w-full border-2 rounded-2xl p-5 text-left transition ${paymentMethod === "mercadopago" ? "border-pink-500 bg-pink-50" : "border-gray-200"}`}
+              className={`w-full border-2 cursor-pointer rounded-2xl p-5 text-left transition ${paymentMethod === "mercadopago" ? "border-pink-500 bg-pink-50" : "border-gray-200"}`}
             >
               <p className="font-semibold">Mercado Pago</p>
               <p className="text-xs text-pink-500 mt-2">Incluye comisión</p>
             </button>
             <button
               onClick={() => setPaymentMethod("transferencia")}
-              className={`w-full border-2 rounded-2xl p-5 text-left transition ${paymentMethod === "transferencia" ? "border-pink-500 bg-pink-50" : "border-gray-200"}`}
+              className={`w-full border-2 rounded-2xl p-5 text-left cursor-pointer transition ${paymentMethod === "transferencia" ? "border-pink-500 bg-pink-50" : "border-gray-200"}`}
             >
               <p className="font-semibold">Transferencia bancaria</p>
               <p className="text-sm text-gray-500">Sin cargos extra</p>
@@ -248,7 +246,7 @@ export default function Checkout() {
                 setLoading(false);
               }
             }}
-            className={`w-full py-4 rounded-2xl font-medium text-white ${loading ? "bg-pink-400" : "bg-pink-500 hover:bg-pink-600"}`}
+            className={`w-full py-4 cursor-pointer rounded-2xl font-medium text-white ${loading ? "bg-pink-400" : "bg-pink-500 hover:bg-pink-600"}`}
           >
             {loading ? (
               <>
@@ -276,13 +274,13 @@ export default function Checkout() {
             <div className="mt-6 flex gap-3 justify-end">
               <button
                 onClick={() => setShowWhatsappModal(false)}
-                className="px-4 py-2 border rounded-xl"
+                className="px-4 py-2 border rounded-xl cursor-pointer"
               >
                 Cancelar
               </button>
               <button
                 onClick={handleTransferencia}
-                className="px-5 py-2 bg-pink-500 text-white rounded-xl"
+                className="px-5 py-2 bg-pink-500 text-white rounded-xl cursor-pointer"
               >
                 Continuar
               </button>

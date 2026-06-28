@@ -2,8 +2,8 @@ import { useEffect, useContext } from "react";
 import { ShopContext } from "../context/ShopContext"; // Asegúrate de que esta ruta sea correcta
 
 export default function Cart({ open, onClose, cartItems = [] }) {
-  // Obtenemos las funciones directamente del contexto
-  const { removeFromCart, increaseQuantity, decreaseQuantity } = useContext(ShopContext);
+  const { removeFromCart, increaseQuantity, decreaseQuantity } =
+    useContext(ShopContext);
 
   // Bloquear scroll
   useEffect(() => {
@@ -20,7 +20,7 @@ export default function Cart({ open, onClose, cartItems = [] }) {
   // Total carrito
   const total = cartItems.reduce(
     (acc, item) => acc + item.precio * (item.cantidad || 1),
-    0
+    0,
   );
 
   return (
@@ -52,9 +52,7 @@ export default function Cart({ open, onClose, cartItems = [] }) {
       >
         {/* Header */}
         <div className="flex items-center justify-between p-5 border-b border-pink-100">
-          <h2 className="text-xl font-semibold text-pink-600">
-            Carrito
-          </h2>
+          <h2 className="text-xl font-semibold text-pink-600">Carrito</h2>
           <button
             onClick={onClose}
             className="text-2xl text-gray-500 hover:text-black transition"
@@ -63,7 +61,6 @@ export default function Cart({ open, onClose, cartItems = [] }) {
           </button>
         </div>
 
-        {/* Contenido */}
         <div className="flex-1 overflow-y-auto p-5">
           {cartItems.length === 0 ? (
             <p className="text-gray-500">Tu carrito está vacío.</p>
@@ -84,6 +81,14 @@ export default function Cart({ open, onClose, cartItems = [] }) {
                   {/* Info */}
                   <div className="flex-1">
                     <h3 className="font-medium text-sm">{item.titulo}</h3>
+                    {item.talleSeleccionado && (
+                      <p className="text-xs text-gray-400 mt-0.5">
+                        Talle:{" "}
+                        <span className="font-semibold text-pink-500">
+                          {item.talleSeleccionado}
+                        </span>
+                      </p>
+                    )}
                     <div className="flex justify-between items-center mt-2">
                       {/* Precio */}
                       <p className="text-pink-600 font-semibold">

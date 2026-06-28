@@ -9,8 +9,6 @@ export const POST = async ({ request, cookies, redirect }) => {
   const password = formData.get("password");
   const confirmPassword = formData.get("confirmPassword");
 
-  // Debug: Mira esto en tu terminal al intentar registrarte
-  console.log("Datos recibidos:", { email, username, telefono });
 
   if (!email || !username || !telefono || !password || !confirmPassword) {
     return new Response("Todos los campos son obligatorios", { status: 400 });

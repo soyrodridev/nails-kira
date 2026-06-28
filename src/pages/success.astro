@@ -1,0 +1,51 @@
+---
+import Layout from "../layouts/Layout.astro";
+import Footer from "../components/Footer.astro";
+
+const orderId = Astro.url.searchParams.get("order_id");
+---
+
+<Layout title="¡Compra exitosa! | Nails Kira">
+
+  <main class="h-[90dvh] w-full  bg-white flex items-center justify-center p-6 font-sans">
+    <div class="max-w-xl w-full bg-[#fdf7f9] p-10 rounded-[2rem] border border-[#fce7ef] shadow-sm text-center">
+      
+      <!-- Icono de check (Rosa vibrante) -->
+      <div class="flex justify-center mb-6">
+        <div class="bg-[#c4ff43] p-4 rounded-full">
+          <svg class="w-10 h-10 text-[#1e1e2d]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path>
+          </svg>
+        </div>
+      </div>
+
+      <!-- Títulos y Textos -->
+      <h1 class="text-3xl font-bold text-[#1e1e2d] mb-4">
+        ¡Compra confirmada!
+      </h1>
+      <p class="text-[#4a4a5a] mb-8 leading-relaxed">
+        ¡Muchas gracias por elegir Nails Kira! Tu pedido ha sido procesado correctamente. 
+        En breve recibirás un correo electrónico con los detalles de tu compra.
+      </p>
+
+      <!-- Botón de acción -->
+      <a 
+        href="/" 
+        class="inline-block px-10 py-3 bg-[#eb1d81] text-white font-bold rounded-full hover:bg-[#d61a75] transition-all duration-200 shadow-sm"
+      >
+        Volver a la tienda
+      </a>
+
+      <!-- Referencia ID -->
+      {orderId && (
+        <div class="mt-10 pt-6 border-t border-[#fce7ef]">
+          <p class="text-[10px] uppercase tracking-widest text-gray-400">
+            Número de orden: {orderId}
+          </p>
+        </div>
+      )}
+    </div>
+  </main>
+
+  <Footer />
+</Layout>

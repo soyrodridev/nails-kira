@@ -1,0 +1,42 @@
+---
+// Footer.astro
+const currentYear = new Date().getFullYear();
+---
+
+<footer class="bg-[#fdf7f9] border-t border-[#fce7ef] py-12 mt-20">
+  <div class="max-w-6xl mx-auto px-6 grid grid-cols-1 md:grid-cols-3 gap-8">
+    
+    <!-- Columna 1: Branding -->
+    <div class="flex flex-col gap-2">
+      <img src="/logo-nail.svg" alt="Nails Kira" class="w-40">
+      <p class="text-sm text-[#4a4a5a]">
+        Manicura profesional en casa. Calidad y estilo en cada detalle.
+      </p>
+    </div>
+
+    <!-- Columna 2: Navegación -->
+    <div class="flex flex-col gap-2">
+      <h4 class="font-bold text-[#1e1e2d] mb-2">Navegación</h4>
+      <a href="/" class="text-sm text-[#4a4a5a] hover:text-[#eb1d81] transition">Inicio</a>
+      <a href="/productos" class="text-sm text-[#4a4a5a] hover:text-[#eb1d81] transition">Productos</a>
+      <a href="/nosotras" class="text-sm text-[#4a4a5a] hover:text-[#eb1d81] transition">Nosotras</a>
+    </div>
+
+    <!-- Columna 3: Contacto -->
+    <div class="flex flex-col gap-2">
+      <h4 class="font-bold text-[#1e1e2d] mb-2">Contacto</h4>
+      <p class="text-sm text-[#4a4a5a]">hola@nailskira.com</p>
+      <div class="flex gap-4 mt-2">
+        <!-- Puedes agregar aquí iconos de redes sociales -->
+        <a href="#" class="text-[#eb1d81] hover:opacity-70 transition">Instagram</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Copyright -->
+  <div class="max-w-6xl mx-auto px-6 mt-12 pt-8 border-t border-[#fce7ef] text-center">
+    <p class="text-xs text-[#4a4a5a]">
+      © {currentYear} Nails Kira. Todos los derechos reservados.
+    </p>
+  </div>
+</footer>

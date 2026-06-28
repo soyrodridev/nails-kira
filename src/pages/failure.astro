@@ -1,0 +1,57 @@
+---
+import Layout from "../layouts/Layout.astro";
+
+const orderId = Astro.url.searchParams.get("order_id");
+---
+
+<Layout title="Error en el pago | Nails Kira">
+  <main class="min-h-screen bg-white flex items-center justify-center p-6 font-sans">
+    
+    <!-- Contenedor con el estilo del banner principal de image_dd85de.jpg -->
+    <div class="max-w-xl w-full bg-[#fdf7f9] p-10 rounded-[2rem] border border-[#fce7ef] shadow-sm text-center">
+      
+      <!-- Icono -->
+      <div class="flex justify-center mb-6">
+        <div class="bg-[#fce7ef] p-4 rounded-full">
+          <svg class="w-10 h-10 text-[#eb1d81]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+          </svg>
+        </div>
+      </div>
+
+      <!-- Títulos y Textos -->
+      <h1 class="text-3xl font-bold text-[#1e1e2d] mb-4">
+        ¡Ups! Algo no salió bien
+      </h1>
+      <p class="text-[#4a4a5a] mb-8 leading-relaxed">
+        No pudimos procesar tu pago en este momento. No se realizó ningún cargo. 
+        Puedes volver a intentarlo o navegar por nuestros productos.
+      </p>
+
+      <!-- Botones -->
+      <div class="flex flex-col sm:flex-row gap-4 justify-center">
+        <a 
+          href="/checkout" 
+          class="px-8 py-3 bg-[#c4ff43] text-[#1e1e2d] font-bold rounded-full hover:bg-[#b0e63c] transition-all duration-200 shadow-sm"
+        >
+          Reintentar pago
+        </a>
+        <a 
+          href="/" 
+          class="px-8 py-3 bg-white border border-[#fce7ef] text-[#1e1e2d] font-semibold rounded-full hover:bg-[#fce7ef] transition-all duration-200"
+        >
+          Volver a la tienda
+        </a>
+      </div>
+
+      <!-- Referencia ID -->
+      {orderId && (
+        <div class="mt-10">
+          <p class="text-[10px] uppercase tracking-widest text-gray-400">
+            ID de referencia: {orderId}
+          </p>
+        </div>
+      )}
+    </div>
+  </main>
+</Layout>

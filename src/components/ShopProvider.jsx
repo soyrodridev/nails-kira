@@ -41,47 +41,41 @@ useEffect(() => {
   // ADD TO CART
   // =========================
   const addToCart = (producto) => {
-
-    setCartItems((prev) => {
-
-      const existe = prev.find(
-        (i) => i.id === producto.id
-      );
-
-      if (existe) {
-
-        return prev.map((i) =>
-          i.id === producto.id
-            ? {
-                ...i,
-                cantidad: i.cantidad + 1
-              }
-            : i
-        );
-
-      }
-
-      return [
-        ...prev,
-        {
-          ...producto,
-          cantidad: 1
-        }
-      ];
-
-    });
-
-    setToastMessage(
-      `${producto.titulo} agregado al carrito`
+  setCartItems((prev) => {
+    // Buscamos si existe un item con el mismo ID y el mismo TALLE
+    const existe = prev.find(
+      (i) => i.id === producto.id && i.talleSeleccionado === producto.talleSeleccionado
     );
 
-    setToastOpen(true);
+    if (existe) {
+      // Si existe esa combinación, incrementamos la cantidad
+      return prev.map((i) =>
+        i.id === producto.id && i.talleSeleccionado === producto.talleSeleccionado
+          ? {
+              ...i,
+              cantidad: i.cantidad + 1
+            }
+          : i
+      );
+    }
 
-    setTimeout(() => {
-      setToastOpen(false);
-    }, 2500);
+    // Si es un producto nuevo o un talle nuevo, lo agregamos como nuevo item
+    return [
+      ...prev,
+      {
+        ...producto,
+        cantidad: 1
+      }
+    ];
+  });
 
-  };
+  setToastMessage(`${producto.titulo} (${producto.talleSeleccionado}) agregado al carrito`);
+  setToastOpen(true);
+
+  setTimeout(() => {
+    setToastOpen(false);
+  }, 2500);
+};
 
   // =========================
   // INCREASE

@@ -28,12 +28,37 @@ export default function VentasHistorial() {
     return () => supabase.removeChannel(channel);
   }, []);
 
-  const devolverProducto = async (id) => {
-    // Solo hacemos el update; el 'channel' se encarga de avisar a los demás
-    await supabase
-      .from("productos")
-      .update({ estado: "disponible" })
-      .eq("id", id);
+  const devolverProducto = async (producto) => {
+    try {
+      // 1. Volver a insertar el producto en la tabla catalogo_pos (el catálogo)
+      const { error: insertError } = await supabase
+        .from("catalogo_pos")
+        .insert([
+          {
+            producto_id: producto.id,
+            precio_venta: producto.precio, // Asegúrate de tener este dato guardado
+            created_at: new Date().toISOString(),
+          },
+        ]);
+
+      if (insertError) throw insertError;
+
+      // 2. Cambiar el estado del producto a 'disponible' en la tabla productos
+      const { error: updateError } = await supabase
+        .from("productos")
+        .update({ estado: "disponible" })
+        .eq("id", producto.id);
+
+      if (updateError) throw updateError;
+
+      // 3. Eliminar del historial de ventas si es necesario (o solo actualizar)
+      // await supabase.from("ventas").delete().eq("producto_id", producto.id);
+
+      setVendidos(vendidos.filter((p) => p.id !== producto.id));
+    } catch (err) {
+      console.error("Error al devolver:", err);
+      alert("No se pudo devolver el producto.");
+    }
   };
   return (
     <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-6">

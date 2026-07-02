@@ -8,9 +8,10 @@ export async function POST({ request }) {
     const requestId = request.headers.get("x-request-id");
     const secret = process.env.MP_WEBHOOK_SECRET;
 
-    // Validación de seguridad (Firma)
+    // 1. Validación de seguridad (Firma)
     if (!signature || !requestId || !secret) {
-      return new Response("Faltan credenciales de seguridad", { status: 401 });
+      console.error("Error: Faltan credenciales de seguridad en el webhook");
+      return new Response("Faltan credenciales", { status: 401 });
     }
 
     const isValid = Webhook.validate(
@@ -23,11 +24,12 @@ export async function POST({ request }) {
     );
 
     if (!isValid) {
+      console.error("Error: Firma de webhook inválida");
       return new Response("Firma inválida", { status: 403 });
     }
 
-    // Procesamiento de evento
-    if (body.type === "payment" || body.action === "payment.updated") {
+    // 2. Procesamiento del pago
+    if (body.type === "payment" && body.data && body.data.id) {
       const paymentId = body.data.id;
 
       const response = await fetch(
@@ -42,20 +44,29 @@ export async function POST({ request }) {
       const paymentData = await response.json();
 
       if (paymentData.status === "approved") {
+        console.log(
+          "Pago aprobado, intentando insertar en pagos_pos...",
+          paymentData.external_reference,
+        );
+
         const { error } = await supabase.from("pagos_pos").insert({
           payment_id: String(paymentId),
-          catalogo_id: paymentData.external_reference,
+          catalogo_id: paymentData.external_reference, // Asegúrate de que este valor llegue
           monto: paymentData.transaction_amount,
           estado: "aprobado",
         });
 
-        if (error) throw error;
+        if (error) {
+          console.error("Error al insertar en Supabase:", error);
+          throw error;
+        }
+        console.log("Inserción en BD exitosa");
       }
     }
 
     return new Response("OK", { status: 200 });
   } catch (error) {
-    console.error("Error en Webhook:", error);
-    return new Response("Error en servidor", { status: 500 });
+    console.error("Error critico en webhook:", error);
+    return new Response("Error interno", { status: 500 });
   }
 }

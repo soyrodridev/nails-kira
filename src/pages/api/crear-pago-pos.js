@@ -23,6 +23,8 @@ export async function POST({ request }) {
       throw new Error("Producto no encontrado");
     }
 
+     const DOMAIN = process.env.SITE || import.meta.env.SITE || "https://nails-kira.vercel.app";
+
     const response = await fetch(
       "https://api.mercadopago.com/checkout/preferences",
       {
@@ -42,11 +44,11 @@ export async function POST({ request }) {
           ],
 
           external_reference: String(catalogoId),
-
+          
           back_urls: {
-            success: "https://tuweb.com/success",
-            failure: "https://tuweb.com/failure",
-            pending: "https://tuweb.com/pending",
+            success: `${DOMAIN}/success`,
+            failure: `${DOMAIN}/failure`,
+            pending: `${DOMAIN}/pending`,
           },
 
           auto_return: "approved",
@@ -55,7 +57,8 @@ export async function POST({ request }) {
     );
 
     const data = await response.json();
-
+    console.log("RESPUESTA MERCADO PAGO:");
+    console.log(JSON.stringify(data, null, 2));
     if (!response.ok) {
       console.error(data);
       throw new Error(data.message || "Error creando preferencia");

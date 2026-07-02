@@ -41,21 +41,23 @@ export default function PagoModal({ producto, onClose, onConfirm }) {
     const res = await fetch("/api/crear-pago-pos", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ catalogoId: producto.id }),
+      body: JSON.stringify({ 
+        catalogoId: producto.id,
+        titulo: producto.productos?.titulo || "Producto",
+        precio: producto.precio_venta // Asegúrate de que este sea el campo correcto de tu tabla
+      }),
     });
+    
     const data = await res.json();
 
-    // Lógica inteligente: acepta init_point o qr_data
-    if (data.init_point) {
-      setUrlPago(data.init_point);
-    } else if (data.qr_data) {
-      setUrlPago(data.qr_data);
+    if (data.init_point || data.qr_data) {
+      setUrlPago(data.init_point || data.qr_data);
     } else {
-      alert("Error: " + (data.error || "No se recibió información de pago"));
+      alert("Error: " + (data.error || "No se pudo generar el pago"));
     }
   } catch (err) {
-    console.error(err);
-    alert("Error de conexión");
+    console.error("Error al generar QR:", err);
+    alert("Error de conexión al servidor");
   } finally {
     setLoadingQr(false);
   }

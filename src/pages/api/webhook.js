@@ -29,8 +29,12 @@ export async function POST({ request }) {
     }
 
     // 2. Procesamiento del pago
-    if (body.type === "payment" && body.data && body.data.id) {
-      const paymentId = body.data.id;
+    if (
+      body.type === "payment" ||
+      body.action === "payment.updated" ||
+      body.topic === "payment"
+    ) {
+      const paymentId = body.data?.id || body.id;
 
       const response = await fetch(
         `https://api.mercadopago.com/v1/payments/${paymentId}`,

@@ -9,13 +9,12 @@ export default function CatalogoListado() {
 
   const fetchProductos = async () => {
     setLoading(true);
-    const { data, error } = await supabase
+    const { data } = await supabase
       .from("catalogo_pos")
       .select(`id, precio_venta, producto_id, productos!inner (titulo, imagen_url, estado)`)
       .eq("productos.estado", "disponible")
       .order("created_at", { ascending: false });
     
-    if (error) console.error("Error al cargar productos:", error);
     setProductos(data || []);
     setLoading(false);
   };
@@ -23,7 +22,6 @@ export default function CatalogoListado() {
   useEffect(() => {
     fetchProductos();
 
-    // Suscripción Realtime para mantener el catálogo siempre al día
     const channel = supabase
       .channel('catalogo_sync')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'productos' }, fetchProductos)
@@ -35,37 +33,29 @@ export default function CatalogoListado() {
 
   const procesarVenta = async (catalogoId, productoId, precio, titulo) => {
     try {
-      // Objeto de venta alineado exactamente a los nombres de tus columnas en SQL
       const objetoVenta = { 
-        producto_id: productoId, 
-        titulo: titulo, 
-        precio: Number(precio)
-        // 'created_at' no se envía porque Supabase lo genera automáticamente por defecto
+        producto_id: productoId,
+        cliente: "Cliente Mostrador",
+        cantidad: 1,
+        total: Number(precio),
+        ganancia: 0,
+        estado: 'completado'
       };
 
-      // 1. Registro en historial de ventas
       const { error: ventaError } = await supabase.from("ventas").insert([objetoVenta]);
-      if (ventaError) throw new Error("Error en tabla 'ventas': " + ventaError.message);
+      if (ventaError) throw new Error(ventaError.message);
       
-      // 2. Actualizar estado del producto principal
-      const { error: prodError } = await supabase
-        .from("productos")
-        .update({ estado: 'vendido' })
-        .eq("id", productoId);
-      if (prodError) throw new Error("Error en tabla 'productos': " + prodError.message);
+      const { error: prodError } = await supabase.from("productos").update({ estado: 'vendido' }).eq("id", productoId);
+      if (prodError) throw new Error(prodError.message);
       
-      // 3. Eliminar del catálogo POS
-      const { error: catError } = await supabase
-        .from("catalogo_pos")
-        .delete()
-        .eq("id", catalogoId);
-      if (catError) throw new Error("Error en tabla 'catalogo_pos': " + catError.message);
+      const { error: catError } = await supabase.from("catalogo_pos").delete().eq("id", catalogoId);
+      if (catError) throw new Error(catError.message);
       
       setProductoSeleccionado(null);
-      alert("¡Venta procesada con éxito!");
+      alert("Venta procesada con éxito");
     } catch (err) {
-      console.error("Error detallado:", err);
-      alert(err.message);
+      console.error(err);
+      alert("Error al procesar: " + err.message);
     }
   };
 
@@ -93,11 +83,6 @@ export default function CatalogoListado() {
             </div>
           </div>
         ))}
-        {productos.length === 0 && (
-          <div className="col-span-full p-20 text-center text-gray-400">
-            No hay productos disponibles.
-          </div>
-        )}
       </div>
 
       {productoSeleccionado && (

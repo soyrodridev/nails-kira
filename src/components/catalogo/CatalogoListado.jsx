@@ -15,7 +15,7 @@ export default function CatalogoListado() {
       .eq("productos.estado", "disponible")
       .order("created_at", { ascending: false });
     
-    if (error) console.error("Error al cargar:", error);
+    if (error) console.error("Error al cargar productos:", error);
     setProductos(data || []);
     setLoading(false);
   };
@@ -23,6 +23,7 @@ export default function CatalogoListado() {
   useEffect(() => {
     fetchProductos();
 
+    // Suscripción Realtime para mantener el catálogo siempre al día
     const channel = supabase
       .channel('catalogo_sync')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'productos' }, fetchProductos)
@@ -34,32 +35,37 @@ export default function CatalogoListado() {
 
   const procesarVenta = async (catalogoId, productoId, precio, titulo) => {
     try {
+      // Objeto de venta alineado exactamente a los nombres de tus columnas en SQL
       const objetoVenta = { 
         producto_id: productoId, 
         titulo: titulo, 
-        precio: Number(precio), // Aseguramos que sea número
-        fecha: new Date().toISOString() 
+        precio: Number(precio)
+        // 'created_at' no se envía porque Supabase lo genera automáticamente por defecto
       };
-
-      console.log("Intentando insertar en ventas:", objetoVenta);
 
       // 1. Registro en historial de ventas
       const { error: ventaError } = await supabase.from("ventas").insert([objetoVenta]);
-      if (ventaError) throw new Error("Ventas: " + ventaError.message);
+      if (ventaError) throw new Error("Error en tabla 'ventas': " + ventaError.message);
       
-      // 2. Actualizar estado del producto
-      const { error: prodError } = await supabase.from("productos").update({ estado: 'vendido' }).eq("id", productoId);
-      if (prodError) throw new Error("Productos: " + prodError.message);
+      // 2. Actualizar estado del producto principal
+      const { error: prodError } = await supabase
+        .from("productos")
+        .update({ estado: 'vendido' })
+        .eq("id", productoId);
+      if (prodError) throw new Error("Error en tabla 'productos': " + prodError.message);
       
       // 3. Eliminar del catálogo POS
-      const { error: catError } = await supabase.from("catalogo_pos").delete().eq("id", catalogoId);
-      if (catError) throw new Error("Catalogo: " + catError.message);
+      const { error: catError } = await supabase
+        .from("catalogo_pos")
+        .delete()
+        .eq("id", catalogoId);
+      if (catError) throw new Error("Error en tabla 'catalogo_pos': " + catError.message);
       
       setProductoSeleccionado(null);
       alert("¡Venta procesada con éxito!");
     } catch (err) {
       console.error("Error detallado:", err);
-      alert("Error al procesar: " + err.message);
+      alert(err.message);
     }
   };
 
@@ -69,22 +75,29 @@ export default function CatalogoListado() {
     <>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
         {productos.map((p) => (
-          <div key={p.id} className="bg-white rounded-3xl p-3 border border-gray-100 shadow-sm flex flex-col">
+          <div key={p.id} className="bg-white rounded-3xl p-3 border border-gray-100 shadow-sm hover:border-pink-200 transition-all">
             <div className="relative w-full aspect-square overflow-hidden rounded-2xl bg-gray-100">
-              <img src={p.productos?.imagen_url} className="w-full h-full object-cover" />
+              <img src={p.productos?.imagen_url} alt={p.productos?.titulo} className="w-full h-full object-cover" />
+              <div className="absolute bottom-3 left-3 bg-white/90 px-3 py-1 rounded-full font-bold shadow-sm">
+                ${p.precio_venta}
+              </div>
             </div>
-            <div className="p-4 flex-1">
-              <h3 className="font-bold text-lg mb-2">{p.productos?.titulo}</h3>
-              <p className="text-gray-600 mb-4">${p.precio_venta}</p>
+            <div className="p-4">
+              <h3 className="font-bold text-lg mb-4">{p.productos?.titulo}</h3>
               <button 
                 onClick={() => setProductoSeleccionado(p)}
-                className="w-full bg-gray-900 text-white py-4 rounded-2xl font-bold hover:bg-pink-500 transition-all"
+                className="w-full bg-gray-900 text-white py-4 rounded-2xl font-bold hover:bg-pink-500 transition-all active:scale-95"
               >
                 Vender Producto
               </button>
             </div>
           </div>
         ))}
+        {productos.length === 0 && (
+          <div className="col-span-full p-20 text-center text-gray-400">
+            No hay productos disponibles.
+          </div>
+        )}
       </div>
 
       {productoSeleccionado && (

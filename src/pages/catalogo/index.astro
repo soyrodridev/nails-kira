@@ -1,0 +1,33 @@
+---
+export const prerender = false;
+import KioscoShell from "../../components/catalogo/kioscoShell";
+import Layout from "../../layouts/Layout.astro";
+import { supabaseClient as supabase } from "../../lib/supabase";
+
+// 1. Lógica de autenticación (igual a tu dashboard)
+const accessToken = Astro.cookies.get("sb-access-token");
+const refreshToken = Astro.cookies.get("sb-refresh-token");
+
+if (!accessToken || !refreshToken) return Astro.redirect("/login");
+
+const { data: sessionData } = await supabase.auth.setSession({
+  access_token: accessToken.value,
+  refresh_token: refreshToken.value,
+});
+
+const user = sessionData?.session?.user;
+let username = "Usuario";
+
+if (user) {
+  const { data: perfil } = await supabase
+    .from("perfiles")
+    .select("username")
+    .eq("id", user.id)
+    .single();
+  if (perfil) username = perfil.username;
+}
+---
+
+<Layout>
+    <KioscoShell client:load username={username} />
+</Layout>

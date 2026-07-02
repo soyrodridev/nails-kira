@@ -1,18 +1,20 @@
+// src/middleware.js (o donde tengas tu middleware)
 import { supabaseClient as supabase } from "./lib/supabase";
 
 export const onRequest = async ({ cookies, redirect, url, locals }, next) => {
-  // Verificamos si estamos en una ruta protegida (admin o cliente)
   const esRutaAdmin = url.pathname.startsWith("/admin");
   const esRutaCliente = url.pathname.startsWith("/cliente");
+  const esRutaCatalogo = url.pathname.startsWith("/catalogo");
 
-  if (esRutaAdmin || esRutaCliente) {
-    const accessToken = cookies.get("sb-access-token");
-    const refreshToken = cookies.get("sb-refresh-token");
+  // Si no está logueado y entra a una zona protegida, al login
+  const accessToken = cookies.get("sb-access-token");
+  const refreshToken = cookies.get("sb-refresh-token");
 
-    if (!accessToken || !refreshToken) {
-      return redirect("/login");
-    }
+  if ((esRutaAdmin || esRutaCliente || esRutaCatalogo) && (!accessToken || !refreshToken)) {
+    return redirect("/login");
+  }
 
+  if (esRutaAdmin || esRutaCliente || esRutaCatalogo) {
     try {
       const { data, error } = await supabase.auth.setSession({
         access_token: accessToken.value,
@@ -27,61 +29,52 @@ export const onRequest = async ({ cookies, redirect, url, locals }, next) => {
 
       const user = data.session.user;
 
-      // Consultamos la columna 'role' que existe en tu base de datos
       const { data: perfil, error: perfilError } = await supabase
         .from("perfiles")
-        .select("role") 
+        .select("role")
         .eq("id", user.id)
         .single();
 
-      if (perfilError) {
-        console.error("ERROR AL LEER PERFIL:", perfilError);
-        cookies.delete("sb-access-token", { path: "/" });
-        cookies.delete("sb-refresh-token", { path: "/" });
-        return redirect("/login");
-      }
+      if (perfilError) throw perfilError;
 
-      // Usamos el valor de la columna 'role'
       const role = perfil?.role || "cliente";
-
-
       locals.user = user;
       locals.role = role;
 
       // ==========================
-      // PROTECCIÓN DE /ADMIN
+      // PROTECCIÓN DE RUTAS
       // ==========================
+
+      // 1. Si es kiosco y quiere entrar a /admin, mándalo a /catalogo
+      if (role === "kiosco" && esRutaAdmin) {
+        return redirect("/catalogo");
+      }
+
+      // 2. Control de acceso para ADMIN
       if (esRutaAdmin) {
-        // Solo pueden entrar kiosco y superadmin
-        if (role !== "kiosco" && role !== "superadmin") {
-          console.warn(`Acceso admin denegado a ${url.pathname} para el rol: ${role}`);
-          return redirect("/cliente");
+        if (role !== "superadmin") {
+          return redirect("/catalogo"); // Si no es superadmin, solo puede ver el catálogo
         }
-
-        // Rutas exclusivas para superadmin
-        const esRutaPrivada =
-          url.pathname.startsWith("/admin/finanzas") ||
-          url.pathname.startsWith("/admin/libro-diario");
-
+        
+        // Regla para rutas privadas de superadmin
+        const esRutaPrivada = url.pathname.startsWith("/admin/finanzas") || url.pathname.startsWith("/admin/libro-diario");
         if (esRutaPrivada && role !== "superadmin") {
-          console.warn(`Acceso denegado a ${url.pathname} para el rol: ${role}`);
           return redirect("/admin/dashboard");
         }
       }
 
-      // ==========================
-      // PROTECCIÓN DE /CLIENTE
-      // ==========================
-      if (esRutaCliente) {
-        if (role !== "cliente") {
-          console.warn(`Acceso cliente denegado a ${url.pathname} para el rol: ${role}`);
-          return redirect("/admin/dashboard");
-        }
+      // 3. Control de acceso para CLIENTE
+      if (esRutaCliente && role !== "cliente") {
+        return redirect("/catalogo");
       }
+
+      // 4. Control de acceso para CATÁLOGO
+      if (esRutaCatalogo && (role !== "kiosco" && role !== "superadmin")) {
+        return redirect("/cliente");
+      }
+
     } catch (err) {
-      console.error("Error crítico en middleware:", err);
-      cookies.delete("sb-access-token", { path: "/" });
-      cookies.delete("sb-refresh-token", { path: "/" });
+      console.error("Error en middleware:", err);
       return redirect("/login");
     }
   }

@@ -1,0 +1,101 @@
+// src/components/kiosco/PagoModal.jsx
+import { useState } from 'react';
+import { QRCodeSVG } from 'qrcode.react';
+
+export default function PagoModal({ producto, onClose, onConfirm }) {
+  const [metodo, setMetodo] = useState(null); // null, 'efectivo', 'qr'
+  const [urlPago, setUrlPago] = useState(null);
+  const [loadingQr, setLoadingQr] = useState(false);
+
+  // Función para obtener el QR real desde tu API
+  const generarQrReal = async () => {
+    setLoadingQr(true);
+    try {
+      const res = await fetch("/api/crear-pago-pos", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ catalogoId: producto.id }),
+      });
+      const data = await res.json();
+      if (data.init_point) {
+        setUrlPago(data.init_point);
+      } else {
+        alert("Error al generar el pago: " + (data.error || "Intenta nuevamente"));
+      }
+    } catch (err) {
+      alert("Error de conexión");
+    } finally {
+      setLoadingQr(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-md flex items-center justify-center p-6 z-50">
+      <div className="bg-white rounded-[32px] p-10 max-w-lg w-full shadow-2xl animate-in zoom-in-95">
+        <h2 className="text-3xl font-extrabold text-gray-900 text-center mb-2">Cobrar Venta</h2>
+        <p className="text-gray-500 text-center text-lg mb-8">{producto.productos.titulo}</p>
+        
+        {/* Contenedor central dinámico */}
+        <div className="bg-gray-50 p-8 rounded-3xl border border-gray-100 mb-8 flex flex-col items-center justify-center min-h-[340px]">
+          {!metodo ? (
+            <div className="grid grid-cols-2 gap-6 w-full">
+              <button onClick={() => setMetodo('efectivo')} className="flex flex-col items-center p-8 bg-white rounded-2xl shadow-sm hover:shadow-lg transition-all border-2 border-transparent hover:border-green-400">
+                <svg className="w-24 h-24 mb-4 text-green-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                  <path d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+                <span className="font-bold text-lg text-gray-800">Efectivo</span>
+              </button>
+
+              <button onClick={() => { setMetodo('qr'); generarQrReal(); }} className="flex flex-col items-center p-8 bg-white rounded-2xl shadow-sm hover:shadow-lg transition-all border-2 border-transparent hover:border-blue-400">
+                <svg className="w-24 h-24 mb-4 text-blue-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                  <path d="M3 3h6v6H3V3zM3 15h6v6H3v-6zM15 3h6v6h-6V3zM15 15h2v2h-2v-2zM19 19h2v2h-2v-2zM15 19h2v2h-2v-2zM19 15h2v2h-2v-2z" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+                <span className="font-bold text-lg text-gray-800">Mercado Pago</span>
+              </button>
+            </div>
+          ) : metodo === 'qr' ? (
+            <div className="flex flex-col items-center animate-in fade-in">
+              {loadingQr ? (
+                <div className="text-blue-500 font-bold">Generando QR...</div>
+              ) : urlPago ? (
+                <div className="bg-white p-4 rounded-2xl shadow-inner border border-gray-100">
+                  <QRCodeSVG value={urlPago} size={240} />
+                </div>
+              ) : null}
+              <p className="mt-6 text-blue-600 font-bold text-lg">
+                {loadingQr ? "" : "Escanea para pagar"}
+              </p>
+            </div>
+          ) : (
+            <div className="flex flex-col items-center animate-in fade-in">
+              <svg className="w-32 h-32 mb-4 text-green-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1">
+                <circle cx="12" cy="12" r="10" />
+                <path d="M16 8l-8 8M8 8l8 8" />
+              </svg>
+              <p className="text-5xl font-extrabold text-green-600">${producto.precio_venta}</p>
+              <p className="mt-2 text-gray-400 font-medium">Confirmar cobro en efectivo</p>
+            </div>
+          )}
+        </div>
+
+        {/* Botones de acción */}
+        <div className="space-y-4">
+          {metodo && (
+            <button 
+              onClick={() => onConfirm(metodo)}
+              className="w-full bg-pink-500 hover:bg-pink-600 text-white py-5 rounded-2xl font-bold text-lg transition-all active:scale-95"
+            >
+              Finalizar Venta
+            </button>
+          )}
+          <button 
+            onClick={metodo ? () => { setMetodo(null); setUrlPago(null); } : onClose}
+            className="w-full text-gray-500 font-bold py-3 hover:text-gray-800 transition"
+          >
+            {metodo ? "← Volver atrás" : "Cancelar operación"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}

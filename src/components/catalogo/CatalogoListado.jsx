@@ -39,7 +39,8 @@ export default function CatalogoListado() {
         cantidad: 1,
         total: Number(precio),
         ganancia: 0,
-        estado: 'completado'
+        estado: 'Entregado',
+        estado_pago: 'aprobado'
       };
 
       const { error: ventaError } = await supabase.from("ventas").insert([objetoVenta]);

@@ -44,13 +44,17 @@ export default function PagoModal({ producto, onClose, onConfirm }) {
       body: JSON.stringify({ catalogoId: producto.id }),
     });
     const data = await res.json();
-    
-    if (data.qr_data) {
+
+    // Lógica inteligente: acepta init_point o qr_data
+    if (data.init_point) {
+      setUrlPago(data.init_point);
+    } else if (data.qr_data) {
       setUrlPago(data.qr_data);
     } else {
-      alert("Error: " + (data.error || "No se pudo generar"));
+      alert("Error: " + (data.error || "No se recibió información de pago"));
     }
   } catch (err) {
+    console.error(err);
     alert("Error de conexión");
   } finally {
     setLoadingQr(false);

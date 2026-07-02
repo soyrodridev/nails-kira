@@ -1,31 +1,77 @@
 import { supabaseAdmin as supabase } from "../../lib/supabaseAdmin";
 
-export async function POST(request) {
+export async function POST({ request }) {
+  const ACCESS_TOKEN =
+    process.env.MERCADOPAGO_ACCESS_TOKEN ||
+    import.meta.env.MERCADOPAGO_ACCESS_TOKEN;
+
   try {
     const body = await request.json();
-    console.log("Webhook recibido (DEBUG):", JSON.stringify(body));
 
-    // Si el pago está aprobado (simplemente validamos el tipo)
-    if (body.type === "payment" && body.data?.id) {
-      const paymentId = body.data.id;
-
-      // Usamos el id del pago para registrarlo (sin validaciones complejas por ahora)
-      const { error } = await supabase.from("pagos_pos").insert({
-        payment_id: String(paymentId),
-        catalogo_id: body.data.external_reference || "sin-ref",
-        estado: "aprobado",
-        monto: 0, // Valor temporal para probar
+    if (body.type !== "payment") {
+      return new Response("OK", {
+        status: 200,
       });
-
-      if (error) {
-        console.error("Error en Supabase:", error);
-        return new Response("Error en DB", { status: 500 });
-      }
     }
 
-    return new Response("OK", { status: 200 });
-  } catch (error) {
-    console.error("Error crítico:", error);
-    return new Response("Error en servidor", { status: 500 });
+    const paymentId = body.data.id;
+
+    const response = await fetch(
+      `https://api.mercadopago.com/v1/payments/${paymentId}`,
+      {
+        headers: {
+          Authorization: `Bearer ${ACCESS_TOKEN}`,
+        },
+      }
+    );
+
+    const payment = await response.json();
+
+    if (payment.status !== "approved") {
+      return new Response("OK", {
+        status: 200,
+      });
+    }
+
+    const catalogoId =
+      payment.metadata?.catalogo_id ||
+      payment.external_reference;
+
+    if (!catalogoId) {
+      return new Response("OK", {
+        status: 200,
+      });
+    }
+
+    // Evita duplicados
+    const { data: existente } = await supabase
+      .from("pagos_mp")
+      .select("id")
+      .eq("payment_id", payment.id)
+      .maybeSingle();
+
+    if (!existente) {
+      await supabase
+        .from("pagos_mp")
+        .insert({
+          catalogo_id: catalogoId,
+          payment_id: payment.id,
+          estado: payment.status,
+          monto: payment.transaction_amount,
+        });
+    }
+
+    return new Response("OK", {
+      status: 200,
+    });
+
+  } catch (e) {
+
+    console.error(e);
+
+    return new Response("ERROR", {
+      status: 500,
+    });
+
   }
 }

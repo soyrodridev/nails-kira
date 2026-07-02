@@ -23,7 +23,11 @@ export async function POST({ request }) {
       throw new Error("Producto no encontrado");
     }
 
-    const DOMAIN = process.env.SITE || import.meta.env.SITE || "https://nails-kira.vercel.app";
+    // Eliminamos pagos viejos por si vuelven a generar QR
+    await supabase
+      .from("pagos_mp")
+      .delete()
+      .eq("catalogo_id", catalogoId);
 
     const response = await fetch(
       "https://api.mercadopago.com/checkout/preferences",
@@ -44,15 +48,13 @@ export async function POST({ request }) {
           ],
 
           external_reference: String(catalogoId),
-          
-          // Esta línea asegura que Mercado Pago avise a tu servidor
-          notification_url: `${DOMAIN}/api/webhook`,
-          
-          back_urls: {
-            success: `${DOMAIN}/success`,
-            failure: `${DOMAIN}/failure`,
-            pending: `${DOMAIN}/pending`,
+
+          metadata: {
+            catalogo_id: String(catalogoId),
           },
+
+          notification_url:
+            "https://nails-kira.vercel.app/api/webhook",
 
           auto_return: "approved",
         }),
@@ -60,9 +62,7 @@ export async function POST({ request }) {
     );
 
     const data = await response.json();
-    console.log("RESPUESTA MERCADO PAGO:");
-    console.log(JSON.stringify(data, null, 2));
-    
+
     if (!response.ok) {
       console.error(data);
       throw new Error(data.message || "Error creando preferencia");

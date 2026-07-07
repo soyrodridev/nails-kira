@@ -8,7 +8,6 @@ export default function PagoModal({ producto, onClose, onConfirm }) {
   const [pagoRealizado, setPagoRealizado] = useState(false);
   const [consultandoPago, setConsultandoPago] = useState(false);
 
-  /* Generar QR automáticamente al elegir el método */
   const generarQrReal = async () => {
     setLoadingQr(true);
     try {
@@ -19,7 +18,6 @@ export default function PagoModal({ producto, onClose, onConfirm }) {
       });
       
       const data = await res.json();
-      console.log("Respuesta de la API:", data); // <-- ABRE LA CONSOLA DEL NAVEGADOR (F12)
 
       if (!res.ok) throw new Error(data.error);
       

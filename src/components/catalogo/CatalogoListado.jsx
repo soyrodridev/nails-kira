@@ -53,7 +53,6 @@ export default function CatalogoListado() {
       if (catError) throw new Error(catError.message);
       
       setProductoSeleccionado(null);
-      alert("Venta procesada con éxito");
     } catch (err) {
       console.error(err);
       alert("Error al procesar: " + err.message);

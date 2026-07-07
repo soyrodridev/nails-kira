@@ -1,7 +1,4 @@
 import { supabaseAdmin as supabase } from "../../lib/supabaseAdmin";
-import pkg from "mercadopago";
-
-const { Webhook } = pkg;
 
 export const POST = async ({ request }) => {
   try {
@@ -9,103 +6,66 @@ export const POST = async ({ request }) => {
 
     console.log("Webhook recibido:", body);
 
-    const signature = request.headers.get("x-signature");
-    const requestId = request.headers.get("x-request-id");
-    const secret = import.meta.env.MP_WEBHOOK_SECRET;
-
-    // Validar la firma SOLO si Mercado Pago la envía
-    if (signature && requestId && secret) {
-      try {
-        const isValid = Webhook.validate(
-          body,
-          {
-            "x-signature": signature,
-            "x-request-id": requestId,
-          },
-          secret
-        );
-
-        if (!isValid) {
-          console.error("Firma inválida");
-          return new Response("Firma inválida", { status: 403 });
-        }
-      } catch (err) {
-        console.error("Error validando firma:", err);
-      }
-    }
-
-    // Solo procesamos pagos
     if (body.type !== "payment" || !body.data?.id) {
       return new Response("OK", { status: 200 });
     }
 
-    // Consultar el pago en Mercado Pago
     const mpResponse = await fetch(
       `https://api.mercadopago.com/v1/payments/${body.data.id}`,
       {
         headers: {
           Authorization: `Bearer ${import.meta.env.MERCADOPAGO_ACCESS_TOKEN}`,
         },
-      }
+      },
     );
 
     if (!mpResponse.ok) {
-      const error = await mpResponse.text();
-      console.error("Error consultando pago:", error);
+      console.error(await mpResponse.text());
       return new Response("Error consultando Mercado Pago", { status: 500 });
     }
 
-    const paymentData = await mpResponse.json();
+    const payment = await mpResponse.json();
 
-    console.log("Pago obtenido:", paymentData);
+    console.log(payment);
 
-    if (paymentData.status === "approved") {
-      const isQR =
-        paymentData.external_reference &&
-        paymentData.external_reference.startsWith("QR_");
+    if (payment.status !== "approved") {
+      return new Response("OK", { status: 200 });
+    }
 
-      const catalogId = isQR
-        ? paymentData.external_reference.replace("QR_", "")
-        : paymentData.external_reference;
+    const isQR =
+      payment.external_reference &&
+      payment.external_reference.startsWith("QR_");
 
-      // Evitar duplicados
-      const { data: existe } = await supabase
-        .from("pagos_pos")
-        .select("id")
-        .eq("payment_id", String(paymentData.id))
-        .maybeSingle();
+    const catalogId = isQR
+      ? payment.external_reference.replace("QR_", "")
+      : payment.external_reference;
 
-      if (!existe) {
-        const { error } = await supabase.from("pagos_pos").insert({
-          payment_id: String(paymentData.id),
-          catalogo_id: catalogId,
-          monto: paymentData.transaction_amount,
-          estado: "aprobado",
-          tipo: isQR ? "QR" : "LINK",
-        });
+    const { data: existe } = await supabase
+      .from("pagos_pos")
+      .select("id")
+      .eq("payment_id", String(payment.id))
+      .maybeSingle();
 
-        if (error) {
-          console.error("Error guardando en Supabase:", error);
-          return new Response("Error BD", { status: 500 });
-        }
+    if (!existe) {
+      const { error } = await supabase.from("pagos_pos").insert({
+        payment_id: String(payment.id),
+        catalogo_id: catalogId,
+        monto: payment.transaction_amount,
+        estado: "aprobado",
+        tipo: isQR ? "QR" : "LINK",
+      });
+
+      if (error) {
+        console.error(error);
       }
     }
 
     return new Response("OK", { status: 200 });
-  } catch (error) {
-    console.error("ERROR WEBHOOK:", error);
+  } catch (err) {
+    console.error(err);
 
-    return new Response(
-      JSON.stringify({
-        error: error.message,
-        stack: error.stack,
-      }),
-      {
-        status: 500,
-        headers: {
-          "Content-Type": "application/json",
-        },
-      }
-    );
+    return new Response("Error", {
+      status: 500,
+    });
   }
 };

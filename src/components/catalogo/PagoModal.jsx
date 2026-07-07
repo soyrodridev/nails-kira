@@ -1,17 +1,28 @@
 import { useState, useEffect } from "react";
 import { QRCodeSVG } from "qrcode.react";
+import { supabaseClient as supabase } from "../../lib/supabase";
 
 export default function PagoModal({ producto, onClose, onConfirm, sesionId }) {
   const [metodo, setMetodo] = useState(null);
   const [urlPago, setUrlPago] = useState(null);
-  const [loading, setLoading] = useState(false); // Loader unificado
+  const [loading, setLoading] = useState(false);
   const [pagoRealizado, setPagoRealizado] = useState(false);
   const [consultandoPago, setConsultandoPago] = useState(false);
 
-  // Función para cerrar, ejecutar callback y recargar
   const finalizarOperacion = () => {
-    onConfirm(); // Ejecuta la venta en el componente padre
-    window.location.reload(); // Recarga la página para refrescar todos los datos
+    onConfirm();
+    window.location.reload();
+  };
+
+  // Función auxiliar para registrar en finanzas
+  const registrarMovimiento = async (monto, concepto) => {
+    await supabase.from("movimientos").insert([{
+      tipo: 'ingreso',
+      concepto: concepto,
+      categoria: 'Ventas Kiosco',
+      monto: monto,
+      created_at: new Date().toISOString()
+    }]);
   };
 
   const generarQrReal = async () => {
@@ -49,8 +60,11 @@ export default function PagoModal({ producto, onClose, onConfirm, sesionId }) {
       });
       if (!res.ok) throw new Error("Error al guardar venta");
       
+      // Registrar en finanzas
+      await registrarMovimiento(producto.precio_venta, `Venta (Efectivo): ${producto.productos.titulo}`);
+      
       setPagoRealizado(true);
-      setTimeout(finalizarOperacion, 2000); // Espera 2s para mostrar el éxito y recarga
+      setTimeout(finalizarOperacion, 2000);
     } catch (err) {
       alert(err.message);
       setLoading(false);
@@ -66,6 +80,10 @@ export default function PagoModal({ producto, onClose, onConfirm, sesionId }) {
         const data = await res.json();
         if (data.pagado) {
           clearInterval(intervalo);
+          
+          // Registrar en finanzas al detectar pago
+          await registrarMovimiento(producto.precio_venta, `Venta (QR): ${producto.productos.titulo}`);
+          
           setPagoRealizado(true);
           setConsultandoPago(false);
           setTimeout(finalizarOperacion, 2000);

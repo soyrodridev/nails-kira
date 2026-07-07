@@ -7,6 +7,7 @@ export default function PagoModal({ producto, onClose, onConfirm }) {
   const [loadingQr, setLoadingQr] = useState(false);
   const [pagoRealizado, setPagoRealizado] = useState(false);
   const [consultandoPago, setConsultandoPago] = useState(false);
+  const [confirmarEfectivo, setConfirmarEfectivo] = useState(false);
 
   const generarQrReal = async () => {
     setLoadingQr(true);
@@ -16,15 +17,9 @@ export default function PagoModal({ producto, onClose, onConfirm }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ catalogoId: producto.id }),
       });
-      
       const data = await res.json();
-
       if (!res.ok) throw new Error(data.error);
-      
-      if (!data.url) {
-        throw new Error("La API no devolvió una URL válida");
-      }
-
+      if (!data.url) throw new Error("La API no devolvió una URL válida");
       setUrlPago(data.url);
       setConsultandoPago(true);
     } catch (err) {
@@ -35,15 +30,31 @@ export default function PagoModal({ producto, onClose, onConfirm }) {
     }
   };
 
-  /* Monitoreo del pago */
+  const confirmarVentaEfectivo = async () => {
+    setLoadingQr(true);
+    try {
+      const res = await fetch("/api/productos/ventas-mostrador", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ catalogoId: producto.id, metodo: "efectivo" }),
+      });
+      if (!res.ok) throw new Error("Error al guardar venta");
+      setPagoRealizado(true);
+      setTimeout(() => onConfirm("efectivo"), 2500);
+    } catch (err) {
+      alert(err.message);
+    } finally {
+      setLoadingQr(false);
+    }
+  };
+
+  /* Monitoreo del pago QR */
   useEffect(() => {
     if (!consultandoPago) return;
-
     const intervalo = setInterval(async () => {
       try {
         const res = await fetch(`/api/pago-status?id=${producto.id}`);
         const data = await res.json();
-
         if (data.pagado) {
           clearInterval(intervalo);
           setPagoRealizado(true);
@@ -52,7 +63,6 @@ export default function PagoModal({ producto, onClose, onConfirm }) {
         }
       } catch (err) { console.error(err); }
     }, 2000);
-
     return () => clearInterval(intervalo);
   }, [consultandoPago]);
 
@@ -62,13 +72,15 @@ export default function PagoModal({ producto, onClose, onConfirm }) {
         <h2 className="text-3xl font-extrabold text-gray-900 text-center mb-2">
           {pagoRealizado ? "¡Pago Exitoso!" : "Cobrar Venta"}
         </h2>
-        {!pagoRealizado && <p className="text-gray-500 text-center text-lg mb-8">{producto.productos.titulo}</p>}
+        {!pagoRealizado && !confirmarEfectivo && (
+            <p className="text-gray-500 text-center text-lg mb-8">{producto.productos.titulo}</p>
+        )}
 
         <div className="bg-gray-50 p-8 rounded-3xl border border-gray-100 mb-8 flex flex-col items-center justify-center min-h-[340px]">
           
           {!metodo ? (
             <div className="grid grid-cols-2 gap-6 w-full">
-              <button onClick={() => setMetodo("efectivo")} className="flex flex-col items-center p-8 bg-white rounded-2xl shadow-sm hover:shadow-lg transition-all border-2 border-transparent hover:border-green-400">
+              <button onClick={() => { setMetodo("efectivo"); setConfirmarEfectivo(true); }} className="flex flex-col items-center p-8 bg-white rounded-2xl shadow-sm hover:shadow-lg transition-all border-2 border-transparent hover:border-green-400">
                 <svg className="w-24 h-24 mb-4 text-green-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" strokeLinecap="round" strokeLinejoin="round"/></svg>
                 <span className="font-bold text-lg text-gray-800">Efectivo</span>
               </button>
@@ -76,6 +88,14 @@ export default function PagoModal({ producto, onClose, onConfirm }) {
                 <svg className="w-24 h-24 mb-4 text-blue-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M3 3h6v6H3V3zM3 15h6v6H3v-6zM15 3h6v6h-6V3zM15 15h2v2h-2v-2zM19 19h2v2h-2v-2zM15 19h2v2h-2v-2zM19 15h2v2h-2v-2z" strokeLinecap="round" strokeLinejoin="round"/></svg>
                 <span className="font-bold text-lg text-gray-800">Mercado Pago</span>
               </button>
+            </div>
+          ) : confirmarEfectivo ? (
+            <div className="text-center animate-in fade-in">
+              <p className="text-xl font-bold text-gray-800 mb-8">¿Confirmar recepción de efectivo?</p>
+              <div className="flex gap-4">
+                <button onClick={() => { setMetodo(null); setConfirmarEfectivo(false); }} className="flex-1 py-4 rounded-xl bg-gray-200 font-bold hover:bg-gray-300">No</button>
+                <button onClick={confirmarVentaEfectivo} className="flex-1 py-4 rounded-xl bg-green-500 text-white font-bold hover:bg-green-600">Confirmar</button>
+              </div>
             </div>
           ) : pagoRealizado ? (
             <div className="flex flex-col items-center animate-in fade-in">
@@ -100,7 +120,6 @@ export default function PagoModal({ producto, onClose, onConfirm }) {
           )}
         </div>
 
-        {/* Botón de cierre manual */}
         {!pagoRealizado && (
           <button onClick={onClose} className="w-full text-gray-500 font-bold py-3 hover:text-gray-800 transition">
             {metodo ? "← Volver atrás" : "Cancelar operación"}

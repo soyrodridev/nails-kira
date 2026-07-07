@@ -28,6 +28,9 @@ export async function GET({ url }) {
     console.error(error);
   }
 
+  console.log("Resultado:", data);
+  console.log("Error:", error);
+
   return new Response(
     JSON.stringify({
       pagado: !!data,

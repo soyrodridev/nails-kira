@@ -1,6 +1,7 @@
 import { useState } from "react";
 import ProductForm from "./CatalogoForm";
 import CatalogList from "./CatalogoList";
+import ControlSesion from "./ControlSesion";
 
 export default function AddCatalogos() {
   const [showForm, setShowForm] = useState(false);
@@ -8,6 +9,7 @@ export default function AddCatalogos() {
   return (
     <div className="space-y-8">
       {/* Botón de acción principal */}
+        <ControlSesion />
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-bold">Gestión de Catálogo</h2>
         <button 

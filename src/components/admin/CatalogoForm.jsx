@@ -1,4 +1,3 @@
-// src/components/admin/CatalogoForm.jsx
 import { useState, useEffect } from "react";
 import { supabaseClient as supabase } from "../../lib/supabase";
 
@@ -21,6 +20,15 @@ export default function CatalogoForm({ onSuccess }) {
     const formData = new FormData(e.target);
     
     try {
+      // 1. Obtener sesión activa para vincular el producto
+      const { data: sesion } = await supabase
+        .from("sesiones")
+        .select("id")
+        .eq("estado", "activa")
+        .single();
+        
+      if (!sesion) throw new Error("No hay una sesión activa para cargar productos.");
+
       let finalProductoId = formData.get("producto_id");
 
       // LÓGICA SI ES UN PRODUCTO NUEVO
@@ -51,10 +59,11 @@ export default function CatalogoForm({ onSuccess }) {
         finalProductoId = nuevoP.id;
       }
 
-      // INSERTAR EN CATÁLOGO POS
+      // INSERTAR EN CATÁLOGO POS CON SESIÓN
       const { error: posError } = await supabase.from("catalogo_pos").insert({
         producto_id: finalProductoId,
-        precio_venta: formData.get("precio_venta")
+        precio_venta: formData.get("precio_venta"),
+        sesion_id: sesion.id
       });
 
       if (posError) throw posError;

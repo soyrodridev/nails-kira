@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { QRCodeSVG } from "qrcode.react";
 
-export default function PagoModal({ producto, onClose, onConfirm }) {
+export default function PagoModal({ producto, onClose, onConfirm, sesionId }) {
   const [metodo, setMetodo] = useState(null);
   const [urlPago, setUrlPago] = useState(null);
   const [loading, setLoading] = useState(false); // Loader unificado
@@ -20,7 +20,7 @@ export default function PagoModal({ producto, onClose, onConfirm }) {
       const res = await fetch("/api/crear-pago-pos", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ catalogoId: producto.id }),
+        body: JSON.stringify({ catalogoId: producto.id, sesionId: sesionId }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
@@ -41,7 +41,11 @@ export default function PagoModal({ producto, onClose, onConfirm }) {
       const res = await fetch("/api/productos/ventas-mostrador", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ catalogoId: producto.id, metodo: "efectivo" }),
+        body: JSON.stringify({ 
+          catalogoId: producto.id, 
+          metodo: "efectivo",
+          sesionId: sesionId 
+        }),
       });
       if (!res.ok) throw new Error("Error al guardar venta");
       

@@ -6,16 +6,30 @@ export default function CatalogoListado() {
   const [productos, setProductos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [productoSeleccionado, setProductoSeleccionado] = useState(null);
+  const [sesionActiva, setSesionActiva] = useState(null);
 
   const fetchProductos = async () => {
     setLoading(true);
-    const { data } = await supabase
-      .from("catalogo_pos")
-      .select(`id, precio_venta, producto_id, productos!inner (titulo, imagen_url, estado)`)
-      .eq("productos.estado", "disponible")
-      .order("created_at", { ascending: false });
     
-    setProductos(data || []);
+    // 1. Obtener sesión activa primero
+    const { data: sesion } = await supabase
+      .from("sesiones")
+      .select("id")
+      .eq("estado", "activa")
+      .single();
+    
+    if (sesion) {
+      setSesionActiva(sesion);
+      // 2. Traer productos filtrados por la sesion_id de la sesión activa
+      const { data } = await supabase
+        .from("catalogo_pos")
+        .select(`id, precio_venta, producto_id, sesion_id, productos!inner (titulo, imagen_url, estado)`)
+        .eq("sesion_id", sesion.id)
+        .eq("productos.estado", "disponible")
+        .order("created_at", { ascending: false });
+      
+      setProductos(data || []);
+    }
     setLoading(false);
   };
 
@@ -40,7 +54,8 @@ export default function CatalogoListado() {
         total: Number(precio),
         ganancia: 0,
         estado: 'Entregado',
-        estado_pago: 'aprobado'
+        estado_pago: 'aprobado',
+        sesion_id: sesionActiva.id // Se vincula la venta a la sesión actual
       };
 
       const { error: ventaError } = await supabase.from("ventas").insert([objetoVenta]);

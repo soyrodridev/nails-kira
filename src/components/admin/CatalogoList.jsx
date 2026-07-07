@@ -1,4 +1,3 @@
-// src/components/admin/CatalogList.jsx
 import { useEffect, useState } from "react";
 import { supabaseClient as supabase } from "../../lib/supabase";
 
@@ -12,12 +11,23 @@ export default function CatalogList() {
 
   const loadItems = async () => {
     setLoading(true);
-    const { data } = await supabase
-      .from("catalogo_pos")
-      .select(`id, precio_venta, created_at, productos (titulo, imagen_url)`)
-      .order("created_at", { ascending: false });
     
-    setItems(data || []);
+    // Obtener la sesión activa para filtrar
+    const { data: sesion } = await supabase
+      .from("sesiones")
+      .select("id")
+      .eq("estado", "activa")
+      .single();
+
+    if (sesion) {
+      const { data } = await supabase
+        .from("catalogo_pos")
+        .select(`id, precio_venta, created_at, productos (titulo, imagen_url)`)
+        .eq("sesion_id", sesion.id)
+        .order("created_at", { ascending: false });
+      
+      setItems(data || []);
+    }
     setLoading(false);
   };
 
@@ -56,7 +66,6 @@ export default function CatalogList() {
                   <div>
                     <p className="font-bold text-gray-800">{item.productos?.titulo}</p>
                     <p className="text-[10px] text-gray-400 font-mono">ID #{item.id.slice(0, 8)}...</p>
-                    {/* Info extra visible solo en móvil */}
                     <div className="md:hidden mt-1 text-xs">
                       <span className="text-pink-500 font-bold">${item.precio_venta}</span>
                       <span className="text-gray-400 ml-2">{new Date(item.created_at).toLocaleDateString()}</span>

@@ -4,41 +4,22 @@ export async function GET({ url }) {
   const id = url.searchParams.get("id");
 
   if (!id) {
-    return new Response(
-      JSON.stringify({
-        pagado: false,
-      }),
-      {
-        status: 400,
-        headers: {
-          "Content-Type": "application/json",
-        },
-      },
-    );
+    return Response.json({ pagado: false }, { status: 400 });
   }
 
   const { data, error } = await supabase
     .from("pagos_pos")
-    .select("id")
+    .select("payment_id")
     .eq("catalogo_id", id)
     .eq("estado", "aprobado")
-    .maybeSingle();
+    .limit(1);
 
   if (error) {
     console.error(error);
+    return Response.json({ pagado: false });
   }
 
-  console.log("Resultado:", data);
-  console.log("Error:", error);
-
-  return new Response(
-    JSON.stringify({
-      pagado: !!data,
-    }),
-    {
-      headers: {
-        "Content-Type": "application/json",
-      },
-    },
-  );
+  return Response.json({
+    pagado: data.length > 0,
+  });
 }

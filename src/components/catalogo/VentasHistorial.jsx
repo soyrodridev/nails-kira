@@ -3,8 +3,8 @@ import { supabaseClient as supabase } from "../../lib/supabase";
 
 export default function VentasHistorial() {
   const [vendidos, setVendidos] = useState([]);
-  const [isDevolviendo, setIsDevolviendo] = useState(false); // Estado global de carga
-  const [ventaASeleccionar, setVentaASeleccionar] = useState(null); // Venta a confirmar
+  const [isDevolviendo, setIsDevolviendo] = useState(false);
+  const [ventaASeleccionar, setVentaASeleccionar] = useState(null);
 
   useEffect(() => {
     fetchVendidos();
@@ -35,28 +35,48 @@ export default function VentasHistorial() {
     const producto = ventaASeleccionar.productos;
 
     try {
-      // 1. Re-insertar en catálogo
-      const { error: insertError } = await supabase
+      // 1. Verificamos si el producto ya existe en catalogo_pos para evitar duplicados
+      const { data: existente } = await supabase
         .from("catalogo_pos")
-        .insert([{
-          producto_id: producto.id,
-          precio_venta: producto.precio,
-          created_at: new Date().toISOString()
-        }]);
-      if (insertError) throw insertError;
+        .select("id")
+        .eq("producto_id", producto.id)
+        .maybeSingle();
 
-      // 2. Actualizar estado
-      const { error: updateError } = await supabase
+      if (existente) {
+        // Si ya existe, solo actualizamos su estado o fecha
+        await supabase
+          .from("catalogo_pos")
+          .update({ created_at: new Date().toISOString() })
+          .eq("id", existente.id);
+      } else {
+        // Si no existe, insertamos uno nuevo
+        await supabase
+          .from("catalogo_pos")
+          .insert([{
+            producto_id: producto.id,
+            precio_venta: producto.precio,
+            created_at: new Date().toISOString()
+          }]);
+      }
+
+      // 2. Actualizar estado del producto a 'disponible'
+      await supabase
         .from("productos")
         .update({ estado: 'disponible' })
         .eq("id", producto.id);
-      if (updateError) throw updateError;
 
+      // 3. Eliminar de la tabla ventas
+      await supabase
+        .from("ventas")
+        .delete()
+        .eq("id", ventaASeleccionar.id);
+
+      // Actualizar vista local
       setVendidos(vendidos.filter(v => v.id !== ventaASeleccionar.id));
-      alert("Producto devuelto correctamente");
+      alert("Producto devuelto correctamente y eliminado del historial.");
     } catch (err) {
       console.error("Error:", err);
-      alert("Error: " + err.message);
+      alert("Error al devolver: " + err.message);
     } finally {
       setIsDevolviendo(false);
       setVentaASeleccionar(null);
@@ -90,7 +110,7 @@ export default function VentasHistorial() {
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-white p-8 rounded-3xl max-w-sm w-full text-center">
             <h3 className="text-xl font-bold mb-2">¿Confirmar devolución?</h3>
-            <p className="text-gray-500 mb-8">El producto volverá al catálogo y estará disponible para la venta.</p>
+            <p className="text-gray-500 mb-8">El producto volverá al catálogo y se borrará del historial.</p>
             
             <div className="flex gap-3">
               <button 

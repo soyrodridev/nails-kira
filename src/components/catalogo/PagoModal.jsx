@@ -4,13 +4,18 @@ import { QRCodeSVG } from "qrcode.react";
 export default function PagoModal({ producto, onClose, onConfirm }) {
   const [metodo, setMetodo] = useState(null);
   const [urlPago, setUrlPago] = useState(null);
-  const [loadingQr, setLoadingQr] = useState(false);
+  const [loading, setLoading] = useState(false); // Loader unificado
   const [pagoRealizado, setPagoRealizado] = useState(false);
   const [consultandoPago, setConsultandoPago] = useState(false);
-  const [confirmarEfectivo, setConfirmarEfectivo] = useState(false);
+
+  // Función para cerrar, ejecutar callback y recargar
+  const finalizarOperacion = () => {
+    onConfirm(); // Ejecuta la venta en el componente padre
+    window.location.reload(); // Recarga la página para refrescar todos los datos
+  };
 
   const generarQrReal = async () => {
-    setLoadingQr(true);
+    setLoading(true);
     try {
       const res = await fetch("/api/crear-pago-pos", {
         method: "POST",
@@ -22,16 +27,16 @@ export default function PagoModal({ producto, onClose, onConfirm }) {
       if (!data.url) throw new Error("La API no devolvió una URL válida");
       setUrlPago(data.url);
       setConsultandoPago(true);
+      setLoading(false);
     } catch (err) {
       console.error(err);
       alert(err.message);
-    } finally {
-      setLoadingQr(false);
+      setLoading(false);
     }
   };
 
   const confirmarVentaEfectivo = async () => {
-    setLoadingQr(true);
+    setLoading(true);
     try {
       const res = await fetch("/api/productos/ventas-mostrador", {
         method: "POST",
@@ -39,12 +44,12 @@ export default function PagoModal({ producto, onClose, onConfirm }) {
         body: JSON.stringify({ catalogoId: producto.id, metodo: "efectivo" }),
       });
       if (!res.ok) throw new Error("Error al guardar venta");
+      
       setPagoRealizado(true);
-      setTimeout(() => onConfirm("efectivo"), 2500);
+      setTimeout(finalizarOperacion, 2000); // Espera 2s para mostrar el éxito y recarga
     } catch (err) {
       alert(err.message);
-    } finally {
-      setLoadingQr(false);
+      setLoading(false);
     }
   };
 
@@ -59,7 +64,7 @@ export default function PagoModal({ producto, onClose, onConfirm }) {
           clearInterval(intervalo);
           setPagoRealizado(true);
           setConsultandoPago(false);
-          setTimeout(() => onConfirm("mercadopago"), 2500);
+          setTimeout(finalizarOperacion, 2000);
         }
       } catch (err) { console.error(err); }
     }, 2000);
@@ -70,17 +75,29 @@ export default function PagoModal({ producto, onClose, onConfirm }) {
     <div className="fixed inset-0 bg-black/50 backdrop-blur-md flex items-center justify-center p-6 z-50">
       <div className="bg-white rounded-[32px] p-10 max-w-lg w-full shadow-2xl animate-in zoom-in-95">
         <h2 className="text-3xl font-extrabold text-gray-900 text-center mb-2">
-          {pagoRealizado ? "¡Pago Exitoso!" : "Cobrar Venta"}
+          {pagoRealizado ? "¡Venta Registrada!" : "Cobrar Venta"}
         </h2>
-        {!pagoRealizado && !confirmarEfectivo && (
-            <p className="text-gray-500 text-center text-lg mb-8">{producto.productos.titulo}</p>
+        
+        {!pagoRealizado && (
+          <p className="text-gray-500 text-center text-lg mb-8">{producto.productos.titulo}</p>
         )}
 
         <div className="bg-gray-50 p-8 rounded-3xl border border-gray-100 mb-8 flex flex-col items-center justify-center min-h-[340px]">
-          
-          {!metodo ? (
+          {pagoRealizado ? (
+            <div className="flex flex-col items-center animate-in fade-in">
+              <div className="w-40 h-40 rounded-full bg-green-100 flex items-center justify-center animate-bounce">
+                <svg className="w-24 h-24 text-green-600" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/></svg>
+              </div>
+              <h2 className="mt-8 text-3xl font-extrabold text-green-600">¡Éxito!</h2>
+            </div>
+          ) : loading ? (
+            <div className="flex flex-col items-center">
+              <svg className="animate-spin w-16 h-16 text-pink-500" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" opacity=".25"/><path d="M22 12A10 10 0 0012 2" stroke="currentColor" strokeWidth="3"/></svg>
+              <p className="mt-8 font-bold text-pink-600">Procesando...</p>
+            </div>
+          ) : !metodo ? (
             <div className="grid grid-cols-2 gap-6 w-full">
-              <button onClick={() => { setMetodo("efectivo"); setConfirmarEfectivo(true); }} className="flex flex-col items-center p-8 bg-white rounded-2xl shadow-sm hover:shadow-lg transition-all border-2 border-transparent hover:border-green-400">
+              <button onClick={confirmarVentaEfectivo} className="flex flex-col items-center p-8 bg-white rounded-2xl shadow-sm hover:shadow-lg transition-all border-2 border-transparent hover:border-green-400">
                 <svg className="w-24 h-24 mb-4 text-green-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" strokeLinecap="round" strokeLinejoin="round"/></svg>
                 <span className="font-bold text-lg text-gray-800">Efectivo</span>
               </button>
@@ -89,38 +106,17 @@ export default function PagoModal({ producto, onClose, onConfirm }) {
                 <span className="font-bold text-lg text-gray-800">Mercado Pago</span>
               </button>
             </div>
-          ) : confirmarEfectivo ? (
-            <div className="text-center animate-in fade-in">
-              <p className="text-xl font-bold text-gray-800 mb-8">¿Confirmar recepción de efectivo?</p>
-              <div className="flex gap-4">
-                <button onClick={() => { setMetodo(null); setConfirmarEfectivo(false); }} className="flex-1 py-4 rounded-xl bg-gray-200 font-bold hover:bg-gray-300">No</button>
-                <button onClick={confirmarVentaEfectivo} className="flex-1 py-4 rounded-xl bg-green-500 text-white font-bold hover:bg-green-600">Confirmar</button>
-              </div>
-            </div>
-          ) : pagoRealizado ? (
-            <div className="flex flex-col items-center animate-in fade-in">
-              <div className="w-40 h-40 rounded-full bg-green-100 flex items-center justify-center animate-bounce">
-                <svg className="w-24 h-24 text-green-600" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/></svg>
-              </div>
-              <h2 className="mt-8 text-3xl font-extrabold text-green-600">¡Pago realizado!</h2>
-            </div>
-          ) : loadingQr ? (
-            <div className="flex flex-col items-center">
-              <svg className="animate-spin w-12 h-12 text-pink-500" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" opacity=".25"/><path d="M22 12A10 10 0 0012 2" stroke="currentColor" strokeWidth="3"/></svg>
-              <p className="mt-8 font-bold text-pink-600">Generando QR...</p>
-            </div>
           ) : (
             <div className="flex flex-col items-center">
               <div className="bg-white p-4 rounded-2xl shadow-inner border border-gray-100">
                 <QRCodeSVG value={urlPago || ""} size={240} />
               </div>
               <h3 className="mt-6 text-xl font-bold text-gray-800">Escaneá para pagar</h3>
-              <svg className="animate-spin w-8 h-8 text-pink-500 mt-8" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" opacity=".25"/><path d="M22 12A10 10 0 0012 2" stroke="currentColor" strokeWidth="3"/></svg>
             </div>
           )}
         </div>
 
-        {!pagoRealizado && (
+        {!pagoRealizado && !loading && (
           <button onClick={onClose} className="w-full text-gray-500 font-bold py-3 hover:text-gray-800 transition">
             {metodo ? "← Volver atrás" : "Cancelar operación"}
           </button>

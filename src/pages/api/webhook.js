@@ -15,12 +15,12 @@ export const POST = async ({ request }) => {
 
     if (body.type === "payment" && body.data?.id) {
       const response = await fetch(`https://api.mercadopago.com/v1/payments/${body.data.id}`, {
-        headers: { Authorization: `Bearer ${process.env.MERCADOPAGO_ACCESS_TOKEN}` },
+        headers: { Authorization: `Bearer ${import.meta.env.MERCADOPAGO_ACCESS_TOKEN}` },
       });
       const paymentData = await response.json();
 
       if (paymentData.status === "approved") {
-        // Determinamos el origen
+        // Determinamos el origena
         const isQR = paymentData.external_reference?.startsWith("QR_");
         const catalogId = isQR ? paymentData.external_reference.replace("QR_", "") : paymentData.external_reference;
 

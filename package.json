@@ -14,9 +14,6 @@
   "dependencies": {
     "@astrojs/react": "^5.0.4",
     "@astrojs/vercel": "^10.0.6",
-    "@capacitor/android": "^8.4.1",
-    "@capacitor/cli": "^8.4.1",
-    "@capacitor/core": "^8.4.1",
     "@radix-ui/react-dialog": "^1.1.15",
     "@supabase/supabase-js": "^2.105.3",
     "@tailwindcss/vite": "^4.2.4",

@@ -181,28 +181,6 @@ useEffect(() => {
 
         </nav>
 
-        {/* FOOTER */}
-        <div className="p-5 border-t border-gray-100">
-
-          <div className="
-            rounded-3xl
-            bg-gradient-to-r
-            from-fuchsia-500
-            to-pink-500
-            p-6
-            text-white
-            shadow-xl
-          ">
-            <h3 className="font-semibold text-lg">
-              💖 Tu negocio crece
-            </h3>
-
-            <p className="text-sm opacity-90 mt-2 leading-relaxed">
-              Sigue registrando ventas y controla todas tus ganancias.
-            </p>
-          </div>
-
-        </div>
       </aside>
     </>
   );

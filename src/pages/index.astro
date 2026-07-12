@@ -5,12 +5,11 @@ import App from "../components/App";
 import { supabaseClient } from "../lib/supabase";
 import Footer from "../components/Footer.astro";
 
-const { data: productos } =
-  await supabaseClient.from("productos").select("*");
+const { data: productos } = await supabaseClient.from("productos").select("*");
 ---
-<Layout>
-<App client:load productos={productos || []} />
 
+<Layout title="Press On | Nail's Kira">
+  <App client:load productos={productos || []} />
 
-<Footer/>
+  <Footer />
 </Layout>

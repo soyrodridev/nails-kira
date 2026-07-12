@@ -37,12 +37,11 @@ export default function Header() {
     <>
       <header className="w-full bg-pink-50/80 backdrop-blur-md border-pink-100 border-b sticky top-0 z-50">
         <nav className="max-w-7xl mx-auto relative flex items-center justify-between h-20 px-6">
-          {/* Logo */}
-          <a href="/" className="flex-shrink-0 z-20">
+         
+          <a href="/" className="shrink-0 z-20">
             <img src="/logo-nail.svg" alt="Logo" className="w-28" />
           </a>
 
-          {/* Menú centrado */}
           <ul className="hidden md:flex items-center gap-10 absolute left-1/2 -translate-x-1/2">
             <li>
               <a href="/" className="flex items-center gap-2 text-sm font-medium text-gray-600 hover:text-pink-600 uppercase tracking-wider transition">
@@ -58,9 +57,7 @@ export default function Header() {
             </li>
           </ul>
 
-          {/* Acciones derecha */}
           <div className="flex items-center gap-6 z-20">
-            {/* Buscador (Desktop) */}
             <div className="hidden md:flex relative items-center justify-end w-48">
               <input
                 type="text"
@@ -74,7 +71,6 @@ export default function Header() {
               </button>
             </div>
 
-            {/* Icono buscador (Mobile) */}
             <button onClick={() => setSearchOpen(!searchOpen)} className="md:hidden hover:text-pink-600 transition">
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeWidth="1.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
             </button>
@@ -89,12 +85,10 @@ export default function Header() {
               )}
             </button>
 
-            {/* Hamburguesa */}
             <button onClick={() => setMenuOpen(!menuOpen)} className="md:hidden text-gray-600">
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeWidth="2" d="M4 6h16M4 12h16m-7 6h7" /></svg>
             </button>
 
-            {/* Usuario */}
             <div className="relative hidden md:block">
               {user ? (
                 <button onClick={() => setUserMenuOpen(!userMenuOpen)} className="text-sm font-medium text-gray-800 hover:text-pink-600 transition uppercase tracking-wider">{user.username}</button>
@@ -112,7 +106,6 @@ export default function Header() {
           </div>
         </nav>
 
-        {/* Buscador Mobile (Desplegable) */}
         {searchOpen && (
           <div className="md:hidden px-6 pb-4 bg-pink-50/80 backdrop-blur-md">
             <input
@@ -125,7 +118,6 @@ export default function Header() {
           </div>
         )}
 
-        {/* Menú Mobile */}
         {menuOpen && (
           <div className="md:hidden bg-white border-b border-gray-100 p-6 space-y-4 shadow-lg">
             <a href="/" className="flex items-center gap-3 text-gray-600"><svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" /></svg>Productos</a>
